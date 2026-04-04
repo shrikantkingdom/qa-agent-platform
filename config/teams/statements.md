@@ -16,18 +16,21 @@ archived in S3 and surfaced via the React portal.
 
 | Resource | URL |
 |----------|-----|
-| **Jira Board** | https://shrikantpatil.atlassian.net/jira/software/projects/SCRUM/boards/1 |
+| **Jira Board** | https://shrikantpatil.atlassian.net/jira/software/projects/CRFLT/boards/1 |
 | **Confluence** | https://shrikantpatil.atlassian.net/wiki/spaces/STMT |
-| **Services Repo** | https://github.com/shrikantkingdom/statements |
-| **UI App Repo** | https://github.com/shrikantkingdom/sow_ui |
-| **Automation Repo** | https://github.com/shrikantkingdom/playwright_project |
+| **Backend Services Repo** | https://github.com/shrikantkingdom/statements |
+| **Database / Stored Procedures Repo** | https://github.com/shrikantkingdom/statements-db |
+| **UI Application Repo** | https://github.com/shrikantkingdom/statements-ui |
+| **QA Automation Repo (Playwright)** | https://github.com/shrikantkingdom/playwright_project |
 
 ---
 
 ## Jira Configuration
 
-- **Project Key**: `SCRUM`
-- **Board URL**: https://shrikantpatil.atlassian.net/jira/software/projects/SCRUM/boards/1
+- **Project Key**: `CRFLT` (Client Reporting)
+- **Component**: `CR-statements`
+- **Board URL**: https://shrikantpatil.atlassian.net/jira/software/projects/CRFLT/boards/1
+- **Board Filter JQL**: `project = CRFLT AND component = "CR-statements" ORDER BY created DESC`
 
 ### Custom Fields
 

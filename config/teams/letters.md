@@ -20,19 +20,22 @@ handling, or audit trail mutation is a critical compliance violation.
 
 | Resource | URL |
 |----------|-----|
-| **Jira Board** | https://shrikantpatil.atlassian.net/jira/software/projects/CORCX/boards/1 |
+| **Jira Board** | https://shrikantpatil.atlassian.net/jira/software/projects/CRFLT/boards/3 |
 | **Confluence** | https://shrikantpatil.atlassian.net/wiki/spaces/CORCX |
-| **Services Repo** | https://github.com/shrikantkingdom/client-correspondence |
-| **UI App Repo** | https://github.com/shrikantkingdom/correspondence-ui |
+| **Backend Services Repo** | https://github.com/shrikantkingdom/client-correspondence |
+| **Database / Stored Procedures Repo** | https://github.com/shrikantkingdom/correspondence-db |
+| **UI Application Repo** | https://github.com/shrikantkingdom/correspondence-ui |
 | **Template Repo** | https://github.com/shrikantkingdom/correspondence-templates |
-| **Automation Repo** | https://github.com/shrikantkingdom/playwright_project |
+| **QA Automation Repo (Playwright)** | https://github.com/shrikantkingdom/playwright_project |
 
 ---
 
 ## Jira Configuration
 
-- **Project Key**: `CORCX`
-- **Board URL**: https://shrikantpatil.atlassian.net/jira/software/projects/CORCX/boards/1
+- **Project Key**: `CRFLT` (Client Reporting)
+- **Component**: `CR-letters`
+- **Board URL**: https://shrikantpatil.atlassian.net/jira/software/projects/CRFLT/boards/3
+- **Board Filter JQL**: `project = CRFLT AND component = "CR-letters" ORDER BY created DESC`
 
 ### Custom Fields
 

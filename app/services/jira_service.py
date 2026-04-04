@@ -10,8 +10,17 @@ from app.utils.logger import get_logger
 logger = get_logger(__name__)
 
 # ---------------------------------------------------------------------------
-# Mock ticket library — used when USE_MOCK_JIRA=true (default)
+# Team → Jira Component mapping  (CRFLT project — Client Reporting)
+# To add a new team: add a key here and in config/jira/jira_filters.json
 # ---------------------------------------------------------------------------
+TEAM_COMPONENT_MAP: Dict[str, str] = {
+    "statements": "CR-statements",
+    "confirms": "CR-confirms",
+    "letters": "CR-letters",
+}
+
+VALID_TEAMS = set(TEAM_COMPONENT_MAP.keys())
+
 _MOCK_TICKETS: Dict[str, Dict[str, Any]] = {
     "_default": {
         "id": "PROJ-101",
@@ -82,9 +91,63 @@ class JiraService:
             return True
         return await self._post_attachment(jira_id, file_path)
 
-    # ------------------------------------------------------------------ #
-    # Mock helpers                                                          #
-    # ------------------------------------------------------------------ #
+    async def create_issue(
+        self,
+        team_name: str,
+        summary: str,
+        description: str,
+        issue_type: str = "Story",
+        priority: str = "Medium",
+        labels: Optional[List[str]] = None,
+    ) -> Optional[str]:
+        """Create a Jira issue under the CRFLT project for the given team.
+
+        The team name is automatically mapped to the correct Jira component so
+        that the issue appears on the right Kanban board.
+
+        Args:
+            team_name:   One of 'statements', 'confirms', 'letters'.
+            summary:     Issue summary / title (max 255 chars).
+            description: Full description text (will be converted to ADF).
+            issue_type:  Jira issue type (default 'Story').
+            priority:    Jira priority (default 'Medium').
+            labels:      Optional list of label strings.
+
+        Returns:
+            The newly created Jira issue key (e.g. 'CRFLT-42') or None on failure.
+
+        Raises:
+            ValueError: If team_name is not in TEAM_COMPONENT_MAP.
+        """
+        team_key = team_name.lower().strip()
+        if team_key not in VALID_TEAMS:
+            raise ValueError(
+                f"Invalid team '{team_name}'. Valid teams: {sorted(VALID_TEAMS)}"
+            )
+
+        component = TEAM_COMPONENT_MAP[team_key]
+        logger.info(
+            f"Creating Jira issue for team '{team_key}' "
+            f"(component={component}): {summary[:60]}"
+        )
+
+        if self.use_mock:
+            mock_key = f"{settings.jira_project_key}-999"
+            logger.info(
+                f"[MOCK] Jira issue created: {mock_key} — "
+                f"component={component}, summary={summary[:60]}"
+            )
+            return mock_key
+
+        return await self._create_issue_api(
+            summary=summary,
+            description=description,
+            component=component,
+            issue_type=issue_type,
+            priority=priority,
+            labels=labels or [team_key],
+        )
+
 
     def _mock_ticket(self, jira_id: str) -> JiraTicket:
         data = _MOCK_TICKETS.get(jira_id, _MOCK_TICKETS["_default"]).copy()
@@ -115,6 +178,46 @@ class JiraService:
         if with_body:
             headers["Content-Type"] = "application/json"
         return headers
+
+    async def _create_issue_api(
+        self,
+        summary: str,
+        description: str,
+        component: str,
+        issue_type: str,
+        priority: str,
+        labels: List[str],
+    ) -> Optional[str]:
+        """POST to Jira REST API v3 to create an issue. Returns the issue key or None."""
+        payload = {
+            "fields": {
+                "project": {"key": settings.jira_project_key},
+                "summary": summary,
+                "description": self._to_adf(description),
+                "issuetype": {"name": issue_type},
+                "priority": {"name": priority},
+                "components": [{"name": component}],
+                "labels": labels,
+            }
+        }
+        try:
+            async with httpx.AsyncClient(timeout=30.0, follow_redirects=True) as client:
+                resp = await client.post(
+                    f"{self._get_api_base()}/issue",
+                    json=payload,
+                    headers=self._auth_headers(with_body=True),
+                )
+                if resp.status_code not in (200, 201):
+                    logger.error(
+                        f"Jira issue creation failed ({resp.status_code}): {resp.text[:300]}"
+                    )
+                    return None
+                issue_key = resp.json().get("key")
+                logger.info(f"Jira issue created: {issue_key}")
+                return issue_key
+        except Exception as exc:
+            logger.error(f"Error creating Jira issue: {exc}")
+            return None
 
     async def _fetch_from_api(self, jira_id: str) -> Optional[JiraTicket]:
         url = f"{self._get_api_base()}/issue/{jira_id}"

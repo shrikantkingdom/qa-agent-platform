@@ -16,18 +16,21 @@ for unmatched trades. Regulatory reporting to EMIR and MiFID II is also within s
 
 | Resource | URL |
 |----------|-----|
-| **Jira Board** | https://shrikantpatil.atlassian.net/jira/software/projects/CONF/boards/1 |
+| **Jira Board** | https://shrikantpatil.atlassian.net/jira/software/projects/CRFLT/boards/2 |
 | **Confluence** | https://shrikantpatil.atlassian.net/wiki/spaces/CONF |
-| **Services Repo** | https://github.com/shrikantkingdom/confirms |
-| **UI App Repo** | https://github.com/shrikantkingdom/confirms-ui |
-| **Automation Repo** | https://github.com/shrikantkingdom/playwright_project |
+| **Backend Services Repo** | https://github.com/shrikantkingdom/confirms |
+| **Database / Stored Procedures Repo** | https://github.com/shrikantkingdom/confirms-db |
+| **UI Application Repo** | https://github.com/shrikantkingdom/confirms-ui |
+| **QA Automation Repo (Playwright)** | https://github.com/shrikantkingdom/playwright_project |
 
 ---
 
 ## Jira Configuration
 
-- **Project Key**: `CONF`
-- **Board URL**: https://shrikantpatil.atlassian.net/jira/software/projects/CONF/boards/1
+- **Project Key**: `CRFLT` (Client Reporting)
+- **Component**: `CR-confirms`
+- **Board URL**: https://shrikantpatil.atlassian.net/jira/software/projects/CRFLT/boards/2
+- **Board Filter JQL**: `project = CRFLT AND component = "CR-confirms" ORDER BY created DESC`
 
 ### Custom Fields
 
