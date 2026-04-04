@@ -155,15 +155,70 @@ class JiraService:
             logger.error(f"Jira search error for release {release}: {exc}")
             return []
 
+    @staticmethod
+    def _to_adf(text: str) -> Dict[str, Any]:
+        """Convert a plain/wiki-markup string to Atlassian Document Format (ADF).
+
+        Jira REST API v3 requires ADF for comment bodies.
+        Supports: *bold*, _italic_, plain text, multi-line.
+        """
+        import re
+
+        def _parse_inline(line: str) -> list:
+            nodes: list = []
+            pattern = re.compile(r'(\*[^*]+\*|_[^_]+_)')
+            pos = 0
+            for m in pattern.finditer(line):
+                before = line[pos:m.start()]
+                if before:
+                    nodes.append({"type": "text", "text": before})
+                token = m.group(0)
+                inner = token[1:-1]
+                mark_type = "strong" if token.startswith("*") else "em"
+                nodes.append({
+                    "type": "text",
+                    "text": inner,
+                    "marks": [{"type": mark_type}],
+                })
+                pos = m.end()
+            tail = line[pos:]
+            if tail:
+                nodes.append({"type": "text", "text": tail})
+            return nodes or [{"type": "text", "text": line}]
+
+        paragraphs = []
+        for line in text.splitlines():
+            stripped = line.strip()
+            if not stripped:
+                paragraphs.append({
+                    "type": "paragraph",
+                    "content": [{"type": "text", "text": " "}],
+                })
+            else:
+                paragraphs.append({
+                    "type": "paragraph",
+                    "content": _parse_inline(stripped),
+                })
+
+        if not paragraphs:
+            paragraphs = [{"type": "paragraph", "content": [{"type": "text", "text": text}]}]
+
+        return {"version": 1, "type": "doc", "content": paragraphs}
+
     async def _post_comment(self, jira_id: str, comment: str) -> bool:
         try:
             async with httpx.AsyncClient(timeout=30.0, follow_redirects=True) as client:
                 resp = await client.post(
                     f"{self._get_api_base()}/issue/{jira_id}/comment",
-                    json={"body": comment},
+                    json={"body": self._to_adf(comment)},
                     headers=self._auth_headers(with_body=True),
                 )
-                resp.raise_for_status()
+                if resp.status_code not in (200, 201):
+                    logger.error(
+                        f"Jira comment POST returned {resp.status_code} for {jira_id}: "
+                        f"{resp.text[:300]}"
+                    )
+                    return False
                 return True
         except Exception as exc:
             logger.error(f"Failed to post comment to {jira_id}: {exc}")
