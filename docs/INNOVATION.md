@@ -781,3 +781,355 @@ QA engineer reviews: edits summary, removes false positives, adjusts test cases
 | 7 | Accessibility coverage generation — WCAG 2.1 test case generation from UI tickets | Proactive a11y compliance |
 
 - GitHub PAT scoped to minimum required permissions (contents: write, pull_requests: write)
+
+---
+
+## 9. Execution Models — How the Workflow Can Be Triggered
+
+The platform was designed around a single principle: **the orchestration brain is always the
+backend API; the trigger mechanism is interchangeable**. This section documents all supported and
+planned execution modes, the intentional choices made, and the trade-off reasoning.
+
+---
+
+### 9.1 Core Problem Being Solved
+
+> "How do we execute an AI-driven QA workflow (Jira → Code → Tests → Report) in a way that
+> is easy, scalable, and reliable for QA teams?"
+
+The answer is not a single interface. Different teams operate differently. Enterprise QA teams live
+in Jira; engineering teams prefer CLI or GitHub Actions; managers want dashboards. The API-first
+architecture supports all of them without duplicating the orchestration logic.
+
+---
+
+### 9.2 All Execution Models
+
+#### Model 1 — VS Code / Copilot Agent (IDE-Driven)
+
+**How it works:** A developer opens the repo in VS Code, enables a Copilot Agent prompt, and the
+agent calls the platform's MCP tools or API endpoints inline.
+
+**Steps:**
+1. Open repo in VS Code
+2. Enable Copilot Agent mode
+3. Run structured prompt (e.g. "Run QA for CRFLT-42")
+4. Agent calls Jira MCP → GitHub MCP → generates outputs
+
+| | |
+|---|---|
+| **Pros** | Zero infra setup; easiest to prototype; full flexibility; great for debugging |
+| **Cons** | Not scalable; requires technical users; no standardisation across team |
+| **Best for** | POC / initial build phase |
+
+---
+
+#### Model 2 — CLI Tool
+
+**How it works:** A shell command wraps the API call.
+
+```bash
+python scripts/trigger_qa.py --jira-id CRFLT-123 --team-id statements
+```
+
+**Steps:**
+1. Install dependencies and configure `.env`
+2. Run command with ticket ID and team flag
+3. Outputs written to `outputs/` locally
+
+| | |
+|---|---|
+| **Pros** | Faster than IDE; scriptable; easy to automate via cron or CI |
+| **Cons** | Technical users only; no visual feedback; limited adoption for QA analysts |
+| **Best for** | Internal engineering teams; automation pipelines |
+
+---
+
+#### Model 3 — Backend API (FastAPI) — Chosen Foundation
+
+**How it works:** Any system or user calls `POST /api/v1/run-qa` with a JSON payload. The backend
+orchestrates the entire workflow internally.
+
+**Steps:**
+1. Caller sends `{"jira_id": "CRFLT-123", "team_id": "statements", ...}`
+2. Backend fetches ticket from Jira REST API
+3. Backend fetches recent commits from GitHub REST API
+4. AI pipeline runs all 9 workflow steps
+5. Outputs written to `outputs/`; response returned; Jira comment posted if `post_to_jira=true`
+
+| | |
+|---|---|
+| **Pros** | Scalable; reusable; centralised logic; plugs into any trigger (UI, Jira, Slack, GitHub) |
+| **Cons** | Requires hosting; needs API design discipline |
+| **Best for** | **Foundation layer** — all other models are thin wrappers over this |
+
+> This is the intentional choice. All other execution models reduce to "call the API with the right parameters". The workflow logic lives in exactly one place.
+
+---
+
+#### Model 4 — Web UI Dashboard — Primary User-Facing Mode
+
+**How it works:** QA engineer opens the browser dashboard, enters a Jira ticket ID, clicks
+"Run QA Analysis". The UI calls the backend API and renders results live.
+
+**Steps:**
+1. Open `http://localhost:8000` (or deployed URL)
+2. Enter Jira ID, select team
+3. Click "Run QA Analysis"
+4. UI streams progress log
+5. Review generated content in the tabbed editor (test cases, BDD, report)
+6. Click "Upload to Jira" to post the reviewed output
+
+| | |
+|---|---|
+| **Pros** | Very user-friendly; high adoption by QA analysts; visual progress bar; centralized usage |
+| **Cons** | Requires frontend; slightly more infra; not suitable for batch runs |
+| **Best for** | **Primary mode** — QA-heavy teams, non-technical users |
+
+---
+
+#### Model 5 — GitHub Actions (CI/CD Triggered)
+
+**How it works:** The `qa-workflow.yml` workflow runs on `workflow_dispatch`. Can be extended to
+trigger on PR open, label assignment, or push to a release branch.
+
+**Steps:**
+1. Workflow dispatched (manually or via API trigger) with `jira_id` and `team_id`
+2. Workflow starts the FastAPI server on the runner
+3. `scripts/trigger_qa.py` calls the API with all step flags
+4. Artefacts (HTML report, test cases, BDD files) uploaded as GitHub Actions artefacts
+5. QA comment posted to Jira ticket via `post_to_jira=true`
+
+```yaml
+# Trigger via REST
+curl -X POST \
+  -H "Authorization: Bearer $GITHUB_TOKEN" \
+  https://api.github.com/repos/shrikantkingdom/qa-agent-platform/actions/workflows/256210169/dispatches \
+  -d '{"ref": "main", "inputs": {"jira_id": "CRFLT-1", "team_id": "statements", "upload_to_jira": "true"}}'
+```
+
+| | |
+|---|---|
+| **Pros** | No separate hosting; artefacts versioned with runs; audit trail per commit/ticket |
+| **Cons** | Cold-start latency (server boot); runner cost per run; not interactive |
+| **Best for** | Automated regression on PR open; release-gate QA; CI/CD pipelines |
+
+---
+
+#### Model 6 — Jira-Native Execution (Automation Rules)
+
+**How it works:** A Jira Automation rule fires a webhook to the platform API when a trigger
+condition is met (button click, status transition, issue creation).
+
+**Steps (Option A — Jira Automation webhook):**
+1. Create a Jira Automation rule: trigger = "Transition to In Progress" or custom button
+2. Action = "Send web request" to `POST https://<platform>/api/v1/run-qa`
+3. Payload includes `{{issue.key}}` and team mapping
+4. Platform posts result as a comment back to the same ticket
+
+**Steps (Option B — Jira Connect App):**
+1. Build a Jira Forge or Connect app with a panel button
+2. Button calls the platform API; result rendered inside Jira issue panel
+
+| | |
+|---|---|
+| **Pros** | Zero context switching; fits existing QA workflow; high adoption; enterprise-friendly |
+| **Cons** | Jira Automation requires Admin access; Forge app requires development |
+| **Best for** | **Mature enterprise teams** — QA analysts who never leave Jira |
+
+---
+
+#### Model 7 — ChatOps (Slack / Teams Bot)
+
+**How it works:** QA engineer or developer sends a slash command in a team channel.
+
+```
+/qa-run CRFLT-123
+```
+
+Bot calls the platform API and replies with score, grade, and report link in the thread.
+
+| | |
+|---|---|
+| **Pros** | Extremely low friction; no UI needed; fast adoption; visible to whole team in channel |
+| **Cons** | Limited result visualisation; harder for detailed review; requires bot infrastructure |
+| **Best for** | Quick access layer; notifying team of QA score without context-switching |
+
+---
+
+#### Model 8 — Fully Automated (Scheduled / Event-Driven)
+
+**How it works:** Cron job or event bus triggers batch QA across all tickets in a sprint or
+release automatically — no human input required.
+
+**Steps:**
+1. Trigger event: nightly cron / PR merge webhook / release creation in Jira
+2. Backend calls `POST /release-qa` with `fixVersion`
+3. All tickets in the release processed in parallel
+4. Reports posted to each Jira ticket; summary dashboard updated
+5. Alerts fired for tickets scoring below threshold
+
+| | |
+|---|---|
+| **Pros** | Zero manual effort; continuous QA validation; sprint-level trend data |
+| **Cons** | Less per-ticket control; needs strong monitoring to avoid alert noise |
+| **Best for** | Large-scale systems; continuous QA governance; sprint health monitoring |
+
+---
+
+### 9.3 Execution Model Comparison
+
+| Model | Ease of Use | Scalability | QA Friendly | Best Use Case |
+|-------|------------|-------------|-------------|---------------|
+| VS Code / Copilot Agent | Low | Low | ❌ | POC / debugging |
+| CLI (`trigger_qa.py`) | Medium | Medium | ❌ | Engineering / CI scripting |
+| Backend API direct | Medium | High | ⚠️ | Core orchestration layer |
+| Web UI Dashboard | High | High | ✅ | Primary — QA analyst daily use |
+| GitHub Actions | Medium | High | ⚠️ | CI/CD gate; automated trigger |
+| Jira Automation | Very High | High | ✅ | Enterprise — no context switching |
+| Slack / Teams Bot | High | Medium | ✅ | Quick access; team visibility |
+| Scheduled / Event-Driven | Very High | Very High | ✅ | Continuous QA; release governance |
+
+---
+
+### 9.4 Architecture Decision: Why API-First
+
+The key design principle is: **separate the execution layer from the orchestration logic**.
+
+```
+┌─────────────────────────────────────────────────┐
+│            Trigger Layer (interchangeable)       │
+│  Web UI │ GitHub Actions │ Jira │ Slack │ Cron  │
+└─────────────────────┬───────────────────────────┘
+                      │ POST /api/v1/run-qa
+                      ▼
+┌─────────────────────────────────────────────────┐
+│         Orchestration Layer (single source)      │
+│  FastAPI backend → workflow_service → ai_service │
+│  Jira REST API + GitHub REST API integration     │
+└─────────────────────────────────────────────────┘
+```
+
+Benefits:
+- **Extensible**: add a new trigger (e.g. Slack bot) without touching the workflow logic
+- **Maintainable**: one place to fix bugs, update prompts, change output format
+- **Enterprise-ready**: audit log, RBAC, rate limiting all applied once at the API layer
+
+---
+
+## 10. Interview Questions & Answers — Execution Model Depth
+
+---
+
+### Design Decisions
+
+**Q: Why did you build a REST API rather than a standalone CLI tool?**
+
+A: Three reasons. First, the platform needs to serve both a browser UI and automated systems
+(GitHub Actions, Jira webhooks) simultaneously — a CLI can only serve one caller at a time.
+Second, REST makes the workflow reachable from any language or platform without installing
+Python dependencies. Third, the API enables concurrency: multiple tickets can be processed in
+parallel by separate callers, which a blocking CLI loop cannot do.
+
+---
+
+**Q: Why did you choose Web UI as the primary mode rather than Jira-native or Slack?**
+
+A: The Web UI was the right choice for the initial rollout for three reasons:
+1. **Review gate**: QA engineers need to read and edit generated content before it posts to Jira.
+A Jira Automation webhook auto-posts without review — that risks polluting the authoritative
+project record with hallucinated test cases.
+2. **Adoption curve**: QA teams unfamiliar with AI tools are more comfortable with a familiar
+browser form than a Jira sidebar plugin they've never seen.
+3. **Iteration speed**: Changing the UI (adding a tab, adjusting the review panel) is faster than
+releasing a Jira Forge app update.
+Jira-native and Slack modes are roadmap items — they make sense once the team trusts the quality
+of the output and wants to reduce the review step friction.
+
+---
+
+**Q: What would it take to add a Slack bot trigger in the current architecture?**
+
+A: Around 40–60 lines of code. The Slack bolt app would receive a slash command, extract the
+`jira_id` from the message text, call `POST /api/v1/run-qa` via `httpx`, and post the
+`grade + score + report_url` back to the channel thread. The entire QA workflow logic is
+unchanged — only the trigger and response-formatting code is new.
+
+---
+
+**Q: How do you prevent the automated triggered runs (GitHub Actions, scheduled) from spamming Jira tickets with duplicate comments?**
+
+A: Two mechanisms. First, `post_to_jira` defaults to `false` on the API — callers must explicitly
+opt in. Second, the platform's run history in SQLite tracks `run_id` per `jira_id`; a
+deduplication check before posting can prevent double-commenting if the same ticket is
+triggered twice in a short window. For the GitHub Actions mode, the workflow input
+`upload_to_jira` is the explicit gate — set `false` for dry-run checks.
+
+---
+
+**Q: How would you handle Jira Automation webhook authentication if the platform were deployed externally?**
+
+A: The platform would expose a dedicated webhook endpoint (e.g. `POST /webhooks/jira`) protected
+by a shared secret header (`X-Webhook-Secret`). Jira Automation sends the secret as a custom
+header in the "Send web request" action. The endpoint validates the secret via
+`hmac.compare_digest` before processing the payload. This prevents unauthenticated callers from
+triggering expensive LLM workflows.
+
+---
+
+**Q: In the GitHub Actions model, the FastAPI server starts cold on every run. How do you mitigate startup latency?**
+
+A: Three mitigations currently in place:
+1. The workflow polls the `/health` endpoint in a loop (1-second interval, 30-second timeout)
+before calling the API — so the first call is never made before the server is ready.
+2. Python dependencies are cached via `actions/setup-python` with `cache: pip` — reducing cold
+dependency install from ~40s to ~5s.
+3. For latency-sensitive use cases, the platform can be deployed as a persistent service (e.g.
+on a small ECS task or Railway instance) and the GitHub Actions workflow points to the
+external URL instead of starting a local server — removing the cold-start entirely.
+
+---
+
+**Q: How would you route a Jira Automation webhook to the correct team's workflow (statements vs confirms vs letters)?**
+
+A: The webhook payload includes the Jira issue fields. The platform maps the `components` field
+on the ticket (e.g. `CR-statements`) to the `team_id` parameter. This mapping lives in
+`workflow_service._load_team_context()`. A Jira Automation rule can also pass the component
+as a custom header or body field — the routing logic is centralised in the API, not split
+across Jira rules.
+
+---
+
+### Scaling and Risk
+
+**Q: If the platform serves 10 teams, 50 tickets per sprint each — 500 tickets — how does the architecture hold?**
+
+A: The API is stateless and async. Each `/run-qa` call is a coroutine; FastAPI can handle
+concurrent requests naturally. The bottleneck is LLM rate limits, not the application server.
+Horizontal scaling path:
+- Deploy 2–3 API instances behind a load balancer (no shared state beyond the SQLite DB, which
+can be replaced with PostgreSQL)
+- Shard LLM calls across Azure OpenAI deployments in different regions (each has its own TPM limit)
+- Use `POST /release-qa` with the concurrency limiter rather than 500 individual calls
+
+---
+
+**Q: What is your monitoring strategy for production automated runs?**
+
+A: Three layers:
+1. **Structured logging** — every workflow run logs `run_id`, `jira_id`, `team_id`, `grade`,
+`duration_seconds`, and `error` to stdout in JSON format, readable by any APM.
+2. **Run history API** — `GET /history` exposes recent runs with status; a simple Grafana
+datasource or Jira dashboard widget can surface failure rate.
+3. **Grade-F exit code** — the `trigger_qa.py` script exits with code `2` on a Grade F result,
+causing the GitHub Actions job to fail and alerting the team via the standard Actions
+notification channel.
+
+---
+
+### One-Line Summary for Interviews
+
+> "We built an API-first agentic QA platform using FastAPI and direct LLM integration, exposed
+> it via a review-first Web UI for daily QA use, and wired it to GitHub Actions for CI/CD
+> automation — with the architecture designed so that Jira webhooks, Slack bots, and scheduled
+> runs can be added as thin trigger layers without changing any workflow logic."
