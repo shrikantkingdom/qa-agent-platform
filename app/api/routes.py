@@ -1,9 +1,11 @@
 from pathlib import Path
+import hmac
+import secrets
 import uuid
 
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter, BackgroundTasks, Header, HTTPException, Query
 from fastapi.responses import FileResponse, Response
-from typing import Optional
+from typing import List, Optional
 
 from app.config.providers import list_providers, get_provider
 from app.config.settings import settings
@@ -14,6 +16,7 @@ from app.models.schemas import (
     JiraCreateRequest,
     JiraUploadRequest,
     JiraQueryRequest,
+    JiraWebhookPayload,
     MarkTestResultRequest,
     PushTestsRequest,
     QARequest,
@@ -26,6 +29,7 @@ from app.models.schemas import (
     TestPlanRequest,
     TestSetRequest,
     UpstreamCallRequest,
+    WorkflowSteps,
 )
 from app.services.github_service import github_service
 from app.services.history_service import history_service
@@ -605,4 +609,135 @@ async def quick_regression_tests(request: QuickRegressionRequest):
         "testcases_csv": result.testcases_csv_path,
         "bdd_feature": result.bdd_feature_path,
         "error": result.error,
+    }
+
+
+# ════════════════════════════════════════════════════════════════════════════════
+# JIRA AUTOMATION WEBHOOK  —  POST /webhooks/jira
+# ════════════════════════════════════════════════════════════════════════════════
+
+# Maps Jira component names (lower-cased) → internal team_id.
+# Keeps component→team resolution in one place so it stays in sync with
+# config/jira/crflt_project.json without having to load the JSON at startup.
+_COMPONENT_TEAM_MAP: dict = {
+    "cr-statements": "statements",
+    "cr-confirms": "confirms",
+    "cr-letters": "letters",
+}
+
+
+def _resolve_team(explicit_team: Optional[str], components: List[str]) -> str:
+    """Return the best-match team_id.
+
+    Priority:
+    1. Explicit ``team_id`` supplied by the caller (Forge app / Automation rule).
+    2. First component name that matches a key in ``_COMPONENT_TEAM_MAP``.
+    3. ``settings.default_team`` as a safe fallback.
+    """
+    if explicit_team:
+        return explicit_team
+    for component in components:
+        mapped = _COMPONENT_TEAM_MAP.get(component.lower())
+        if mapped:
+            return mapped
+    logger.warning(
+        f"Could not resolve team from components={components}; "
+        f"falling back to default_team={settings.default_team}"
+    )
+    return settings.default_team
+
+
+async def _run_qa_background(
+    jira_id: str,
+    team_id: str,
+    triggered_by: str,
+    post_to_jira: bool,
+    custom_prompt: Optional[str],
+) -> None:
+    """Background coroutine — runs the full QA workflow and logs the result."""
+    logger.info(
+        f"[webhook] background QA started  jira_id={jira_id}  team={team_id}  "
+        f"post_to_jira={post_to_jira}  triggered_by={triggered_by}"
+    )
+    try:
+        qa_req = QARequest(
+            jira_id=jira_id,
+            team_id=team_id,
+            triggered_by=triggered_by,
+            post_to_jira=post_to_jira,
+            custom_prompt=custom_prompt,
+            steps=WorkflowSteps(),  # all steps enabled by default
+        )
+        result = await workflow_service.run_full_workflow(qa_req)
+        score = result.validation.quality_score if result.validation else "n/a"
+        grade = result.validation.grade if result.validation else "n/a"
+        logger.info(
+            f"[webhook] background QA finished  jira_id={jira_id}  "
+            f"status={result.status}  score={score}  grade={grade}"
+        )
+    except Exception as exc:  # noqa: BLE001
+        logger.error(f"[webhook] background QA failed  jira_id={jira_id}  error={exc}")
+
+
+@router.post("/webhooks/jira", status_code=202)
+async def jira_webhook(
+    payload: JiraWebhookPayload,
+    background_tasks: BackgroundTasks,
+    x_webhook_secret: Optional[str] = Header(None, alias="X-Webhook-Secret"),
+):
+    """Receive a trigger from Jira Automation or a Jira Forge app and start the
+    QA workflow in the background.
+
+    Returns 202 Accepted immediately — the workflow runs asynchronously so
+    Jira's 30-second webhook timeout is never breached.
+
+    Authentication
+    ~~~~~~~~~~~~~~
+    Set ``JIRA_WEBHOOK_SECRET`` in the platform's environment.  The caller must
+    pass the same value in the ``X-Webhook-Secret`` request header.  If the
+    setting is empty (local dev / no secret configured) the check is skipped
+    and a warning is logged.
+    """
+    # ── Secret validation ──────────────────────────────────────────────────────
+    if settings.jira_webhook_secret:
+        if x_webhook_secret is None or not hmac.compare_digest(
+            x_webhook_secret, settings.jira_webhook_secret
+        ):
+            logger.warning(
+                f"[webhook] rejected request — invalid X-Webhook-Secret  "
+                f"jira_id={payload.issue_key}"
+            )
+            raise HTTPException(status_code=403, detail="Invalid webhook secret")
+    else:
+        logger.warning(
+            "[webhook] JIRA_WEBHOOK_SECRET is not configured — "
+            "request accepted without authentication (set the secret in production)"
+        )
+
+    team_id = _resolve_team(payload.team_id, payload.components)
+
+    logger.info(
+        f"[webhook] accepted  jira_id={payload.issue_key}  team={team_id}  "
+        f"triggered_by={payload.triggered_by}  post_to_jira={payload.post_to_jira}"
+    )
+
+    background_tasks.add_task(
+        _run_qa_background,
+        jira_id=payload.issue_key,
+        team_id=team_id,
+        triggered_by=payload.triggered_by,
+        post_to_jira=payload.post_to_jira,
+        custom_prompt=payload.custom_prompt,
+    )
+
+    return {
+        "status": "accepted",
+        "jira_id": payload.issue_key,
+        "team_id": team_id,
+        "message": (
+            f"QA analysis for {payload.issue_key} queued. "
+            f"Result will be posted as a Jira comment when complete."
+            if payload.post_to_jira
+            else f"QA analysis for {payload.issue_key} queued."
+        ),
     }

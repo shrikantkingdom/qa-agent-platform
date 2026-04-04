@@ -33,6 +33,7 @@ class Settings(BaseSettings):
     jira_email: Optional[str] = None
     jira_project_key: str = "PROJ"
     use_mock_jira: bool = True
+    jira_webhook_secret: str = ""  # shared secret for header validation
 
     # GitHub MCP
     github_mcp_url: Optional[str] = None

@@ -1,0 +1,23 @@
+{
+  "name": "qa-agent-forge-app",
+  "version": "1.0.0",
+  "description": "Jira Forge app — Run QA AI Analysis from inside any CRFLT issue panel",
+  "main": "src/index.jsx",
+  "scripts": {
+    "build": "forge build",
+    "deploy": "forge deploy",
+    "install": "forge install",
+    "tunnel": "forge tunnel"
+  },
+  "dependencies": {
+    "@forge/api": "^4.0.0",
+    "@forge/resolver": "^1.5.0",
+    "@forge/ui": "^1.0.0"
+  },
+  "devDependencies": {
+    "@forge/cli": "^10.0.0"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

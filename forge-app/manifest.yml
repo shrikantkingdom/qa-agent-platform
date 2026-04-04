@@ -1,0 +1,28 @@
+modules:
+  jira:issuePanel:
+    - key: qa-agent-panel
+      function: main
+      title: QA Agent Analysis
+      icon: https://cdn.jsdelivr.net/npm/@atlaskit/icon-object@6/dist/png/blue/16.png
+
+  function:
+    - key: main
+      handler: index.run
+
+  webtrigger:
+    - key: qa-agent-result-trigger
+      function: main
+
+app:
+  id: ari:cloud:ecosystem::app/qa-agent-platform
+  name: QA Agent Platform
+
+permissions:
+  scopes:
+    - read:jira-user
+    - read:jira-work
+    - write:jira-work
+  external:
+    fetch:
+      backend:
+        - "*"

@@ -317,3 +317,26 @@ class QuickRegressionRequest(BaseModel):
     additional_context: Optional[str] = None
     team_id: Optional[str] = None
     triggered_by: str = "anonymous"
+
+
+# ── Jira Automation Webhook ───────────────────────────────────────────────────
+
+class JiraWebhookPayload(BaseModel):
+    """Payload accepted by POST /api/v1/webhooks/jira.
+
+    Sent by a Jira Automation Rule (Send web request action) or a Jira Forge
+    app resolver when the QA analysis is triggered directly from Jira.
+    """
+    issue_key: str = Field(..., description="Jira issue key, e.g. CRFLT-123")
+    components: List[str] = Field(
+        default_factory=list,
+        description="Component names from the Jira issue — used to resolve team_id automatically",
+    )
+    team_id: Optional[str] = Field(
+        None,
+        description="Explicit team override (statements | confirms | letters). "
+                    "If omitted the platform resolves team from components.",
+    )
+    triggered_by: str = Field("jira-automation", description="Jira account ID or label for audit log")
+    post_to_jira: bool = Field(True, description="Whether to post the QA comment back to the Jira ticket")
+    custom_prompt: Optional[str] = Field(None, description="Extra QA context injected into the AI prompt")
