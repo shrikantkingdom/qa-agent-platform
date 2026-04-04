@@ -1,10 +1,10 @@
 {
   "project": {
-    "key": "CRFLT",
+    "key": "SCRUM",
     "name": "Client Reporting",
     "id": "10001",
     "description": "All client-facing reporting — statements, trade confirmations, and client correspondence.",
-    "jira_url": "https://shrikantpatil.atlassian.net/jira/software/projects/CRFLT"
+    "jira_url": "https://shrikantpatil.atlassian.net/jira/software/projects/SCRUM"
   },
   "boards": [
     {
@@ -14,9 +14,9 @@
       "team_name": "Statements",
       "component": "CR-statements",
       "description": "Monthly, quarterly, and annual account statements for all account types.",
-      "sprint": "CRFLT Sprint 14",
-      "jira_url": "https://shrikantpatil.atlassian.net/jira/software/projects/CRFLT/boards/1",
-      "sample_tickets": ["CRFLT-101", "CRFLT-102", "CRFLT-103", "CRFLT-501", "CRFLT-502"]
+      "sprint": "SCRUM Sprint 14",
+      "jira_url": "https://shrikantpatil.atlassian.net/jira/software/projects/SCRUM/boards/34",
+      "sample_tickets": ["SCRUM-101", "SCRUM-102", "SCRUM-103", "SCRUM-501", "SCRUM-502"]
     },
     {
       "id": 2,
@@ -25,9 +25,9 @@
       "team_name": "Confirms",
       "component": "CR-confirms",
       "description": "Trade confirmation generation and delivery — SWIFT MT515/MT518, regulatory compliance.",
-      "sprint": "CRFLT Sprint 14",
-      "jira_url": "https://shrikantpatil.atlassian.net/jira/software/projects/CRFLT/boards/2",
-      "sample_tickets": ["CRFLT-201", "CRFLT-202", "CRFLT-203"]
+      "sprint": "SCRUM Sprint 14",
+      "jira_url": "https://shrikantpatil.atlassian.net/jira/software/projects/SCRUM/boards/35",
+      "sample_tickets": ["SCRUM-201", "SCRUM-202", "SCRUM-203"]
     },
     {
       "id": 3,
@@ -36,14 +36,14 @@
       "team_name": "Client Correspondence",
       "component": "CR-letters",
       "description": "Regulatory and marketing letters, GDPR suppression, template versioning, bulk dispatch.",
-      "sprint": "CRFLT Sprint 14",
-      "jira_url": "https://shrikantpatil.atlassian.net/jira/software/projects/CRFLT/boards/3",
-      "sample_tickets": ["CRFLT-301", "CRFLT-302", "CRFLT-303"]
+      "sprint": "SCRUM Sprint 14",
+      "jira_url": "https://shrikantpatil.atlassian.net/jira/software/projects/SCRUM/boards/36",
+      "sample_tickets": ["SCRUM-301", "SCRUM-302", "SCRUM-303"]
     }
   ],
   "sample_tickets": [
     {
-      "id": "CRFLT-501",
+      "id": "SCRUM-501",
       "type": "Story",
       "layer": "UI",
       "team": "statements",
@@ -52,16 +52,16 @@
       "priority": "Medium",
       "status": "Open",
       "story_points": 5,
-      "sprint": "CRFLT Sprint 15",
+      "sprint": "SCRUM Sprint 15",
       "fix_version": "2026-Q2",
       "labels": ["statements", "ui", "portal"],
       "assignee": "dev.ui@wealth.com",
       "description": "Add a 'Download Statement' button on the client portal holdings page. Button should only appear when a statement is available for the selected period.",
       "acceptance_criteria": "1. Button visible only when statement available.\n2. Click → PDF downloads (Content-Type: application/pdf).\n3. Statement dated correctly in filename: YYYYMM-account_id.pdf.\n4. Button disabled and tooltip shown when no statement available.",
-      "jira_url": "https://shrikantpatil.atlassian.net/browse/CRFLT-501"
+      "jira_url": "https://shrikantpatil.atlassian.net/browse/SCRUM-501"
     },
     {
-      "id": "CRFLT-502",
+      "id": "SCRUM-502",
       "type": "Story",
       "layer": "API",
       "team": "statements",
@@ -70,16 +70,16 @@
       "priority": "High",
       "status": "In Progress",
       "story_points": 8,
-      "sprint": "CRFLT Sprint 14",
+      "sprint": "SCRUM Sprint 14",
       "fix_version": "2026-Q2",
       "labels": ["statements", "api", "async"],
       "assignee": "dev.patel@wealth.com",
       "description": "New v2 API for statement generation. POST /statements/generate returns a job_id immediately; client polls GET /statements/jobs/{job_id} for status.",
       "acceptance_criteria": "1. POST /v2/statements/generate returns 202 Accepted with job_id.\n2. GET /v2/statements/jobs/{job_id} returns status: queued|processing|completed|failed.\n3. Completed job includes download_url valid for 24 hours.\n4. Failed job includes error_code and human-readable message.\n5. v1 endpoint remains functional until 2026-Q3 deprecation.",
-      "jira_url": "https://shrikantpatil.atlassian.net/browse/CRFLT-502"
+      "jira_url": "https://shrikantpatil.atlassian.net/browse/SCRUM-502"
     },
     {
-      "id": "CRFLT-201",
+      "id": "SCRUM-201",
       "type": "Story",
       "layer": "API",
       "team": "confirms",
@@ -88,16 +88,16 @@
       "priority": "Critical",
       "status": "In Review",
       "story_points": 13,
-      "sprint": "CRFLT Sprint 14",
+      "sprint": "SCRUM Sprint 14",
       "fix_version": "2026-Q2",
       "labels": ["confirms", "swift", "regulatory"],
       "assignee": "dev.Kumar@wealth.com",
       "description": "Trade confirmations must be generated and dispatched within T+1 business day as per FINRA Rule 10b-10.",
       "acceptance_criteria": "1. MT515 message generated for all equity trades within T+1.\n2. Price tolerance within ±0.0001 of trade price.\n3. BIC validation on all counterparty identifiers.\n4. Duplicate prevention — reprocessed trades do not generate second confirm.",
-      "jira_url": "https://shrikantpatil.atlassian.net/browse/CRFLT-201"
+      "jira_url": "https://shrikantpatil.atlassian.net/browse/SCRUM-201"
     },
     {
-      "id": "CRFLT-203",
+      "id": "SCRUM-203",
       "type": "Story",
       "layer": "UI",
       "team": "confirms",
@@ -106,16 +106,16 @@
       "priority": "Medium",
       "status": "Open",
       "story_points": 8,
-      "sprint": "CRFLT Sprint 15",
+      "sprint": "SCRUM Sprint 15",
       "fix_version": "2026-Q3",
       "labels": ["confirms", "exceptions", "dashboard"],
       "assignee": "dev.lee@wealth.com",
       "description": "Operations team needs a UI to view and manage unmatched trade confirmations.",
       "acceptance_criteria": "1. Dashboard shows all unmatched confirms older than 4 hours.\n2. Operations can manually match or escalate.\n3. SLA timer visible per item.",
-      "jira_url": "https://shrikantpatil.atlassian.net/browse/CRFLT-203"
+      "jira_url": "https://shrikantpatil.atlassian.net/browse/SCRUM-203"
     },
     {
-      "id": "CRFLT-301",
+      "id": "SCRUM-301",
       "type": "Story",
       "layer": "API",
       "team": "letters",
@@ -124,16 +124,16 @@
       "priority": "Critical",
       "status": "In Progress",
       "story_points": 8,
-      "sprint": "CRFLT Sprint 14",
+      "sprint": "SCRUM Sprint 14",
       "fix_version": "2026-Q2",
       "labels": ["correspondence", "gdpr", "suppression", "compliance"],
       "assignee": "dev.anderson@wealth.com",
       "description": "Before any letter is dispatched, the system must check the GDPR suppression list. Suppressed clients must not receive any marketing or regulatory non-essential communications.",
       "acceptance_criteria": "1. GDPR suppression check is performed before every dispatch — no exceptions.\n2. Suppressed client → letter is not dispatched and incident is logged.\n3. Opt-out confirmation letters are always dispatched regardless of suppression status.\n4. Suppression list is refreshed from source of truth every 15 minutes.",
-      "jira_url": "https://shrikantpatil.atlassian.net/browse/CRFLT-301"
+      "jira_url": "https://shrikantpatil.atlassian.net/browse/SCRUM-301"
     },
     {
-      "id": "CRFLT-303",
+      "id": "SCRUM-303",
       "type": "Story",
       "layer": "UI",
       "team": "letters",
@@ -142,19 +142,19 @@
       "priority": "Medium",
       "status": "Open",
       "story_points": 13,
-      "sprint": "CRFLT Sprint 15",
+      "sprint": "SCRUM Sprint 15",
       "fix_version": "2026-Q2",
       "labels": ["correspondence", "bulk", "throttling"],
       "assignee": "dev.taylor@wealth.com",
       "description": "Bulk dispatch campaigns must not exceed 1000 letters/minute to protect downstream email and postal gateways.",
       "acceptance_criteria": "1. Dispatch rate is enforced at 1000/min globally.\n2. Rate limit breach → batch paused and ops alerted, not silently dropped.\n3. Re-queue mechanism for paused batches.",
-      "jira_url": "https://shrikantpatil.atlassian.net/browse/CRFLT-303"
+      "jira_url": "https://shrikantpatil.atlassian.net/browse/SCRUM-303"
     }
   ],
   "sprints": [
-    {"id": 13, "name": "CRFLT Sprint 13", "status": "Closed", "start": "2026-01-06", "end": "2026-01-17"},
-    {"id": 14, "name": "CRFLT Sprint 14", "status": "Active", "start": "2026-01-20", "end": "2026-01-31"},
-    {"id": 15, "name": "CRFLT Sprint 15", "status": "Future", "start": "2026-02-03", "end": "2026-02-14"}
+    {"id": 13, "name": "SCRUM Sprint 13", "status": "Closed", "start": "2026-01-06", "end": "2026-01-17"},
+    {"id": 14, "name": "SCRUM Sprint 14", "status": "Active", "start": "2026-01-20", "end": "2026-01-31"},
+    {"id": 15, "name": "SCRUM Sprint 15", "status": "Future", "start": "2026-02-03", "end": "2026-02-14"}
   ],
   "releases": [
     {"version": "2026-Q1", "status": "Released", "release_date": "2026-01-17"},

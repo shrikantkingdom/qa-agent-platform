@@ -1,4 +1,4 @@
-# Jira Configuration — CRFLT (Client Reporting)
+# Jira Configuration — SCRUM (Client Reporting)
 
 ## Project Structure
 
@@ -6,9 +6,9 @@ All three Client Reporting teams (**Statements**, **Confirms**, **Letters**) sha
 
 | Field | Value |
 |-------|-------|
-| **Project Key** | `CRFLT` |
+| **Project Key** | `SCRUM` |
 | **Project Name** | Client Reporting |
-| **Project URL** | https://shrikantpatil.atlassian.net/jira/software/projects/CRFLT |
+| **Project URL** | https://shrikantpatil.atlassian.net/jira/software/projects/SCRUM |
 | **Project Type** | Scrum / Kanban (team-level boards) |
 | **Single project?** | Yes — do NOT create separate projects per team |
 
@@ -20,9 +20,9 @@ Teams are separated inside the shared project using **Jira Components**. Every i
 
 | Team | Component Name | Board Filter |
 |------|---------------|--------------|
-| Statements | `CR-statements` | `project = CRFLT AND component = "CR-statements"` |
-| Confirms | `CR-confirms` | `project = CRFLT AND component = "CR-confirms"` |
-| Letters | `CR-letters` | `project = CRFLT AND component = "CR-letters"` |
+| Statements | `CR-statements` | `project = SCRUM AND component = "CR-statements"` |
+| Confirms | `CR-confirms` | `project = SCRUM AND component = "CR-confirms"` |
+| Letters | `CR-letters` | `project = SCRUM AND component = "CR-letters"` |
 
 ### Why Components?
 
@@ -35,7 +35,7 @@ Teams are separated inside the shared project using **Jira Components**. Every i
 
 ## Component Setup in Jira UI
 
-1. Open **CRFLT** project → **Project settings** (bottom-left gear icon)
+1. Open **SCRUM** project → **Project settings** (bottom-left gear icon)
 2. Click **Components** in the left sidebar
 3. Add each component:
    - **Name**: `CR-statements` | **Lead**: Statements QA Lead | **Default Assignee**: Project default
@@ -51,21 +51,21 @@ Create three Kanban boards — one per team — using board-level saved filters.
 
 ### Step-by-Step: Create a Kanban Board
 
-1. From the CRFLT project, click **Board** → **Create board**
+1. From the SCRUM project, click **Board** → **Create board**
 2. Choose **Kanban board** → **Board from an existing project**
-3. Name the board (e.g. `Statements Board`) and select project `CRFLT`
+3. Name the board (e.g. `Statements Board`) and select project `SCRUM`
 4. After creation, open **Board settings** → **General** → **Filter Query**
 5. Set the JQL filter:
 
 ```sql
 -- Statements Board
-project = CRFLT AND component = "CR-statements" ORDER BY created DESC
+project = SCRUM AND component = "CR-statements" ORDER BY created DESC
 
 -- Confirms Board
-project = CRFLT AND component = "CR-confirms" ORDER BY created DESC
+project = SCRUM AND component = "CR-confirms" ORDER BY created DESC
 
 -- Letters Board
-project = CRFLT AND component = "CR-letters" ORDER BY created DESC
+project = SCRUM AND component = "CR-letters" ORDER BY created DESC
 ```
 
 6. Click **Save** — only that team's issues will now appear on the board.
@@ -103,7 +103,7 @@ issue_key = await service.create_issue(
     priority="High",
     labels=["statements", "api"],
 )
-# Returns "CRFLT-42" (or None on failure)
+# Returns "SCRUM-42" (or None on failure)
 ```
 
 ### Validation
@@ -126,18 +126,18 @@ await service.create_issue(team_name="payments", ...)
 
 ## Dashboard Overview
 
-A unified **CRFLT QA Dashboard** covers all three teams. The dashboard uses saved Jira filters as widget data sources.
+A unified **SCRUM QA Dashboard** covers all three teams. The dashboard uses saved Jira filters as widget data sources.
 
 | Widget | JQL | Widget Type |
 |--------|-----|------------|
-| All Work | `project = CRFLT ORDER BY created DESC` | Issue Statistics |
-| Bugs Overview | `project = CRFLT AND issuetype = Bug ORDER BY priority DESC` | Issue Statistics |
-| High Priority | `project = CRFLT AND priority in (High, Highest)` | Issue Statistics |
-| Active Sprint | `project = CRFLT AND sprint in openSprints()` | Sprint Health Gadget |
-| Statements Issues | `project = CRFLT AND component = "CR-statements"` | Two Dimensional Filter Stats |
-| Confirms Issues | `project = CRFLT AND component = "CR-confirms"` | Two Dimensional Filter Stats |
-| Letters Issues | `project = CRFLT AND component = "CR-letters"` | Two Dimensional Filter Stats |
-| In Progress | `project = CRFLT AND status = "In Progress"` | Issue Statistics |
+| All Work | `project = SCRUM ORDER BY created DESC` | Issue Statistics |
+| Bugs Overview | `project = SCRUM AND issuetype = Bug ORDER BY priority DESC` | Issue Statistics |
+| High Priority | `project = SCRUM AND priority in (High, Highest)` | Issue Statistics |
+| Active Sprint | `project = SCRUM AND sprint in openSprints()` | Sprint Health Gadget |
+| Statements Issues | `project = SCRUM AND component = "CR-statements"` | Two Dimensional Filter Stats |
+| Confirms Issues | `project = SCRUM AND component = "CR-confirms"` | Two Dimensional Filter Stats |
+| Letters Issues | `project = SCRUM AND component = "CR-letters"` | Two Dimensional Filter Stats |
+| In Progress | `project = SCRUM AND status = "In Progress"` | Issue Statistics |
 
 See `dashboard_guide.md` for step-by-step instructions to build this dashboard in the Jira UI.
 

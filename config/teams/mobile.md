@@ -1,58 +1,149 @@
-# Mobile Team — QA Configuration
+# Mobile QA — Cross-Team Configuration
+## Scope: Statements · Confirms · Letters (SCRUM)
 
-## Team Overview
+> This file defines additional QA instructions that apply when running the
+> **Statements**, **Confirms**, or **Letters** test suites on **mobile devices**.
+> It extends — but does not replace — the individual team files and `global.md`.
 
-| Field              | Value                                                        |
-|--------------------|--------------------------------------------------------------|
-| **Team Name**      | Mobile                                                       |
-| **Jira Project**   | SCRUM                                                        |
-| **Jira Dashboard** | https://shrikantpatil.atlassian.net/jira/software/projects/SCRUM/boards |
-| **Primary App**    | iOS + Android native app                                     |
-| **App GitHub**     | https://github.com/shrikantkingdom/sow_ui                    |
-| **Automation Repo**| https://github.com/shrikantkingdom/playwright_project        |
-| **Tech Stack**     | React Native, TypeScript, Detox (iOS), Espresso (Android)   |
+---
 
-## Application Architecture
+## Overview
 
-- React Native cross-platform app (iOS 16+, Android 13+)
-- REST API backend shared with web frontend
-- Push notifications via FCM/APNs
-- Offline-first architecture with local SQLite cache
-- Biometric authentication (Face ID / fingerprint)
-- Deep links and universal links
+The client-facing portal and operations UIs for all three Client Reporting teams
+are responsive web applications. The same Playwright test suites used for
+desktop are re-executed against **mobile viewports** to verify layout, touch
+interactions, and API behaviour under mobile network conditions.
 
-## QA Focus Areas
+| Field | Value |
+|-------|-------|
+| **Jira Project** | `SCRUM` (Client Reporting) |
+| **Teams in scope** | Statements, Confirms, Letters |
+| **Automation Repo** | https://github.com/shrikantkingdom/playwright_project |
+| **Test marker** | `@pytest.mark.mobile` |
+| **Viewport approach** | Playwright `--device` emulation (Chrome DevTools device descriptors) |
 
-1. **Platform parity** — every feature must be tested on both iOS and Android
-2. **Network conditions** — test on 3G, 4G, WiFi, and offline/airplane mode
-3. **Device variance** — test on small (5"), medium (6.1"), and large (6.7") screens
-4. **Biometric auth** — Face ID / fingerprint enrolment, error handling
-5. **Push notifications** — receipt, display, and deep-link navigation
-6. **Background/foreground transitions** — app state preservation
+---
+
+## Mobile Test Strategy per Team
+
+### Statements
+Mobile scenarios focus on the client portal — statement listing, PDF download,
+and date-range filtering on small screens.
+
+| Priority | Scenario | Platform |
+|----------|----------|----------|
+| P1 | Statement list renders on 375 px viewport | iOS + Android |
+| P1 | PDF download link visible and tappable | iOS + Android |
+| P2 | Date-range picker usable on touch screen | Both |
+| P2 | "No activity" state renders correctly at 375 px | Both |
+| P3 | Statement viewer scroll behaviour | iOS |
+
+### Confirms
+Mobile scenarios focus on the exception management dashboard — viewing
+unmatched confirms and performing manual match/escalate actions.
+
+| Priority | Scenario | Platform |
+|----------|----------|----------|
+| P1 | Exception list renders on 375 px viewport | iOS + Android |
+| P1 | Manual match action accessible via touch | Both |
+| P2 | SLA timer visible without horizontal scroll | Both |
+| P2 | Escalate action confirmation modal usable on mobile | Both |
+| P3 | Filter by instrument type on mobile | Both |
+
+### Letters
+Mobile scenarios focus on the correspondence search, suppression status
+display, and bulk job status monitoring.
+
+| Priority | Scenario | Platform |
+|----------|----------|----------|
+| P1 | Correspondence search renders at 375 px | iOS + Android |
+| P1 | Suppression status badge visible on mobile | Both |
+| P2 | Bulk job progress bar renders correctly | Both |
+| P2 | Template management read-only view on mobile | Both |
+| P3 | Audit trail pagination on small screen | Both |
+
+---
+
+## Device Emulation Matrix
+
+Tests run using Playwright's built-in device emulation — no physical device required in CI.
+
+| Playwright Device Descriptor | Form Factor | Represents |
+|------------------------------|-------------|-----------|
+| `iPhone 15` | 393 × 852 px | Small-medium iOS phone |
+| `iPhone SE` | 375 × 667 px | Smallest common iOS phone |
+| `Pixel 7` | 412 × 915 px | Android phone |
+| `iPad Mini` | 768 × 1024 px | Tablet / iPad Mini |
+
+Add to Playwright config:
+```python
+# conftest.py or playwright.config
+MOBILE_DEVICES = ["iPhone 15", "iPhone SE", "Pixel 7", "iPad Mini"]
+```
+
+---
 
 ## Automation Conventions
 
-- UI automation uses Detox (iOS) and Espresso (Android)
-- API automation in `playwright_project/tests/api/` (shared with backend)
-- Playwright tests cover mobile-viewport browser scenarios exclusively
-- Use `@pytest.mark.mobile` marker for mobile-specific tests
+- **Marker**: Tag all mobile-specific tests with `@pytest.mark.mobile`
+- **Suite location**: Same feature files as desktop — parametrised by device
+- **Page Objects**: Reuse existing Page Objects; add `is_mobile: bool` guard for touch-only steps
+- **Viewport assertion**: Always assert `page.viewport_size["width"] <= 430` at start of mobile tests
+- **No separate feature files**: Mobile tests use the same Gherkin scenarios with a `@mobile` tag
 
-## Custom QA Instructions
+```gherkin
+@mobile @statements @smoke
+Scenario: Statement list renders on mobile
+  Given I am on the statements portal on a mobile device
+  When I view my account statements
+  Then the statement list should be visible without horizontal scrolling
+  And the PDF download button should be tappable
+```
 
-When generating test cases for this team:
-- Always specify the target platform (iOS, Android, or Both)
-- Include network condition as a test parameter for critical user journeys
-- Flag any test that requires physical device vs simulator/emulator
-- Offline mode tests must verify sync behaviour when connectivity returns
-- Deep link tests must cover both cold-start and already-running app scenarios
-- Include battery-drain and memory leak checks for long-running sessions
+---
 
-## Device Test Matrix
+## Custom QA Instructions (Mobile Layer)
 
-| Device          | OS          | Form Factor |
-|-----------------|-------------|-------------|
-| iPhone 15 Pro   | iOS 17      | 6.1" OLED   |
-| iPhone SE 3     | iOS 16      | 4.7" LCD    |
-| Pixel 8 Pro     | Android 14  | 6.7"        |
-| Samsung S23     | Android 13  | 6.1"        |
-| iPad Air 5      | iPadOS 17   | Tablet      |
+When generating test cases for mobile execution:
+
+- Always parametrise by device using the Device Emulation Matrix above
+- Test both **portrait** (default) and **landscape** orientations for P1 flows
+- Assert no horizontal overflow (`scrollWidth <= clientWidth`) on list/table views
+- Verify touch targets are ≥ 44 × 44 px (Apple HIG minimum)
+- For PDF download scenarios on mobile: verify the download intent fires (do not assert file open — OS-dependent)
+- API test behaviour is identical on mobile; only UI viewport tests differ
+- Flag any scenario requiring native push notification or biometric auth — those are **out of scope** for Playwright emulation and require a separate native app test run
+
+---
+
+## Network Condition Testing
+
+Run the following network profiles for P1 mobile tests using Playwright's CDP:
+
+| Profile | Use case |
+|---------|----------|
+| `Fast 3G` (1.5 Mbps / 40ms RTT) | Confirms SLA timer accuracy under slow network |
+| `Slow 3G` (750 kbps / 300ms RTT) | Statements PDF download timeout handling |
+| `Offline` | Letters suppression list graceful error state |
+
+```python
+# Example: set network in test
+await context.route("**/*", lambda route: route.abort())  # Offline simulation
+```
+
+---
+
+## CI Integration
+
+Mobile tests run as a separate job step in the GitHub Actions workflow (after desktop tests pass):
+
+```yaml
+- name: Run mobile viewport tests
+  run: |
+    pytest playwright_project/tests/ -m "mobile" \
+      --device "iPhone 15" \
+      --device "Pixel 7" \
+      --junitxml=outputs/reports/mobile_results.xml
+```
+
+The `team_id` input in the workflow scopes the run to the correct team's suite.
