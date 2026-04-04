@@ -1,0 +1,560 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>QA Agent Platform</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:        #0d1117;
+      --surface:   #161b22;
+      --surface2:  #21262d;
+      --border:    #30363d;
+      --accent:    #4a94e8;
+      --accent-h:  #6aacff;
+      --success:   #3fb950;
+      --warning:   #d29922;
+      --danger:    #f85149;
+      --text:      #e6edf3;
+      --muted:     #8b949e;
+      --radius:    12px;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* ── Header ── */
+    .header {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 14px 28px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+    .header-logo { font-size: 1.8rem; line-height: 1; }
+    .header-title { font-size: 1.05rem; font-weight: 600; letter-spacing: -.01em; }
+    .header-sub   { font-size: 0.78rem; color: var(--muted); margin-top: 2px; }
+    .header-badge {
+      margin-left: auto;
+      font-size: 0.72rem;
+      background: rgba(74,148,232,.15);
+      border: 1px solid rgba(74,148,232,.4);
+      color: var(--accent);
+      padding: 3px 10px;
+      border-radius: 20px;
+    }
+
+    /* ── Main ── */
+    main {
+      flex: 1;
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 40px 20px 60px;
+      width: 100%;
+    }
+
+    /* ── Card ── */
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 28px 32px;
+      margin-bottom: 20px;
+    }
+    .card-title {
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: .06em;
+      margin-bottom: 22px;
+    }
+
+    /* ── Form Elements ── */
+    label {
+      display: block;
+      font-size: 0.85rem;
+      color: var(--muted);
+      margin-bottom: 7px;
+      font-weight: 500;
+    }
+    input[type="text"] {
+      width: 100%;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text);
+      padding: 13px 16px;
+      font-size: 1rem;
+      outline: none;
+      transition: border-color .2s, box-shadow .2s;
+    }
+    input[type="text"]:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(74,148,232,.18);
+    }
+    input[type="text"]::placeholder { color: var(--muted); }
+
+    .field-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin-top: 18px;
+    }
+    @media (max-width: 520px) { .field-row { grid-template-columns: 1fr; } }
+
+    .checkbox-group {
+      display: flex;
+      gap: 24px;
+      margin-top: 18px;
+      flex-wrap: wrap;
+    }
+    .checkbox-label {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.875rem;
+      color: var(--muted);
+      cursor: pointer;
+      user-select: none;
+    }
+    .checkbox-label input[type="checkbox"] {
+      accent-color: var(--accent);
+      width: 16px;
+      height: 16px;
+      cursor: pointer;
+    }
+
+    /* ── Run Button ── */
+    .run-btn {
+      width: 100%;
+      margin-top: 24px;
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      border-radius: 10px;
+      padding: 15px;
+      font-size: 0.95rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background .2s, transform .1s, opacity .2s;
+      letter-spacing: .02em;
+    }
+    .run-btn:hover:not(:disabled) { background: var(--accent-h); }
+    .run-btn:active:not(:disabled) { transform: scale(.99); }
+    .run-btn:disabled { opacity: .45; cursor: not-allowed; }
+
+    /* ── Error ── */
+    .error-box {
+      display: none;
+      background: rgba(248,81,73,.08);
+      border: 1px solid rgba(248,81,73,.5);
+      border-radius: 8px;
+      padding: 14px 16px;
+      color: var(--danger);
+      font-size: 0.875rem;
+      margin-top: 16px;
+      line-height: 1.5;
+    }
+    .error-box.show { display: block; }
+
+    /* ── Progress ── */
+    .progress-card { display: none; }
+    .progress-card.show { display: block; }
+
+    .step-list { list-style: none; }
+    .step-item {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 11px 0;
+      font-size: 0.9rem;
+      color: var(--muted);
+      border-bottom: 1px solid var(--border);
+    }
+    .step-item:last-child { border-bottom: none; }
+    .step-num {
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.78rem;
+      font-weight: 600;
+      flex-shrink: 0;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      transition: all .3s;
+    }
+    .step-item.running { color: var(--text); }
+    .step-item.running .step-num {
+      background: rgba(74,148,232,.15);
+      border-color: var(--accent);
+      color: var(--accent);
+      animation: pulse-icon 1.4s ease-in-out infinite;
+    }
+    .step-item.done { color: var(--text); }
+    .step-item.done .step-num {
+      background: rgba(63,185,80,.12);
+      border-color: var(--success);
+      color: var(--success);
+    }
+    @keyframes pulse-icon {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(74,148,232,.4); }
+      50%       { box-shadow: 0 0 0 6px rgba(74,148,232,0); }
+    }
+
+    /* ── Results ── */
+    .results-card { display: none; }
+    .results-card.show { display: block; }
+
+    .score-row {
+      display: flex;
+      align-items: center;
+      gap: 28px;
+      flex-wrap: wrap;
+    }
+    .score-ring {
+      width: 110px;
+      height: 110px;
+      border-radius: 50%;
+      border: 5px solid;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    .score-ring .val { font-size: 2.2rem; font-weight: 700; line-height: 1; }
+    .score-ring .lbl { font-size: 0.7rem; color: var(--muted); margin-top: 3px; }
+    .ring-green  { border-color: var(--success); color: var(--success); }
+    .ring-yellow { border-color: var(--warning); color: var(--warning); }
+    .ring-red    { border-color: var(--danger);  color: var(--danger);  }
+
+    .score-meta { flex: 1; min-width: 200px; }
+    .score-grade {
+      display: inline-block;
+      font-size: 1.2rem;
+      font-weight: 700;
+      padding: 2px 14px;
+      border-radius: 20px;
+      margin-bottom: 10px;
+    }
+    .grade-green  { background: rgba(63,185,80,.12);  color: var(--success); }
+    .grade-yellow { background: rgba(210,153,34,.12); color: var(--warning); }
+    .grade-red    { background: rgba(248,81,73,.12);  color: var(--danger);  }
+
+    .score-summary { font-size: 0.875rem; color: var(--muted); line-height: 1.7; }
+
+    /* Stats grid */
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+      gap: 14px;
+      margin-top: 28px;
+    }
+    .stat {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 16px 12px;
+      text-align: center;
+    }
+    .stat-val { font-size: 1.65rem; font-weight: 700; color: var(--accent); }
+    .stat-lbl { font-size: 0.73rem; color: var(--muted); margin-top: 4px; }
+
+    /* Downloads */
+    .dl-section { margin-top: 28px; }
+    .dl-title { font-size: 0.8rem; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: .06em; margin-bottom: 12px; }
+    .dl-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(175px, 1fr));
+      gap: 10px;
+    }
+    .dl-link {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 13px 16px;
+      color: var(--text);
+      text-decoration: none;
+      font-size: 0.85rem;
+      transition: border-color .2s, background .2s;
+    }
+    .dl-link:hover { border-color: var(--accent); background: rgba(74,148,232,.08); }
+    .dl-icon { font-size: 1.15rem; }
+
+    /* Footer */
+    footer {
+      text-align: center;
+      padding: 20px;
+      font-size: 0.78rem;
+      color: var(--muted);
+      border-top: 1px solid var(--border);
+    }
+  </style>
+</head>
+<body>
+
+<header class="header">
+  <div class="header-logo">🤖</div>
+  <div>
+    <div class="header-title">QA Agent Platform</div>
+    <div class="header-sub">One-click AI-powered QA workflow automation</div>
+  </div>
+  <div class="header-badge">v1.0</div>
+</header>
+
+<main>
+
+  <!-- ── Input Card ── -->
+  <div class="card" id="inputCard">
+    <div class="card-title">Run QA Analysis</div>
+
+    <label for="jiraId">Jira Ticket ID <span style="color:var(--danger)">*</span></label>
+    <input
+      type="text"
+      id="jiraId"
+      placeholder="e.g. PROJ-123"
+      autocomplete="off"
+      spellcheck="false"
+    />
+
+    <div class="field-row">
+      <div>
+        <label for="release" style="margin-top:0">Release (optional)</label>
+        <input type="text" id="release" placeholder="e.g. v2.1.0" autocomplete="off" />
+      </div>
+      <div style="display:flex;flex-direction:column;justify-content:flex-end;">
+        <div class="checkbox-group" style="margin-top:0">
+          <label class="checkbox-label">
+            <input type="checkbox" id="includeBdd" checked />
+            Generate BDD Scenarios
+          </label>
+          <label class="checkbox-label">
+            <input type="checkbox" id="postToJira" />
+            Post results to Jira
+          </label>
+        </div>
+      </div>
+    </div>
+
+    <button class="run-btn" id="runBtn" onclick="runWorkflow()">
+      ▶&nbsp; Run QA Analysis
+    </button>
+
+    <div class="error-box" id="errorBox"></div>
+  </div>
+
+  <!-- ── Progress Card ── -->
+  <div class="card progress-card" id="progressCard">
+    <div class="card-title">⚙&nbsp; Workflow Running…</div>
+    <ul class="step-list" id="stepList">
+      <li class="step-item" data-idx="0"><div class="step-num">1</div> <span>Fetching Jira ticket</span></li>
+      <li class="step-item" data-idx="1"><div class="step-num">2</div> <span>Validating ticket quality</span></li>
+      <li class="step-item" data-idx="2"><div class="step-num">3</div> <span>Fetching GitHub commits</span></li>
+      <li class="step-item" data-idx="3"><div class="step-num">4</div> <span>Code-requirement alignment check</span></li>
+      <li class="step-item" data-idx="4"><div class="step-num">5</div> <span>Generating test cases</span></li>
+      <li class="step-item" data-idx="5"><div class="step-num">6</div> <span>Generating BDD scenarios &amp; step definitions</span></li>
+      <li class="step-item" data-idx="6"><div class="step-num">7</div> <span>Building HTML QA report</span></li>
+    </ul>
+  </div>
+
+  <!-- ── Results Card ── -->
+  <div class="card results-card" id="resultsCard">
+    <div class="card-title">✅&nbsp; Analysis Complete</div>
+
+    <div class="score-row">
+      <div class="score-ring" id="scoreRing">
+        <div class="val" id="scoreVal">—</div>
+        <div class="lbl">/ 100</div>
+      </div>
+      <div class="score-meta">
+        <div class="score-grade" id="gradeChip">—</div>
+        <div class="score-summary" id="scoreSummary">—</div>
+      </div>
+    </div>
+
+    <div class="stats" id="statsGrid"></div>
+
+    <div class="dl-section">
+      <div class="dl-title">Download Outputs</div>
+      <div class="dl-grid" id="dlGrid"></div>
+    </div>
+  </div>
+
+</main>
+
+<footer>QA Agent Platform &mdash; Powered by AI &nbsp;|&nbsp; <a href="/docs" style="color:var(--accent);text-decoration:none">API Docs</a></footer>
+
+<script>
+  const API = '/api/v1';
+  let _ticker = null;
+  let _step   = 0;
+  const TOTAL_STEPS = 7;
+
+  /* ── UI helpers ── */
+  const $  = id => document.getElementById(id);
+  const show = id => $(id).classList.add('show');
+  const hide = id => $(id).classList.remove('show');
+
+  function setStep(idx, state) {
+    const items = document.querySelectorAll('.step-item');
+    if (idx >= items.length) return;
+    items[idx].className = `step-item ${state}`;
+    const num = items[idx].querySelector('.step-num');
+    num.textContent = state === 'done' ? '✓' : state === 'running' ? '…' : idx + 1;
+  }
+
+  function startTicker() {
+    _step = 0;
+    _ticker = setInterval(() => {
+      if (_step > 0) setStep(_step - 1, 'done');
+      if (_step < TOTAL_STEPS) { setStep(_step, 'running'); _step++; }
+    }, 1700);
+  }
+
+  function stopTicker(success) {
+    clearInterval(_ticker);
+    for (let i = 0; i < TOTAL_STEPS; i++)
+      setStep(i, success ? 'done' : i < _step ? 'done' : 'pending');
+  }
+
+  function resetSteps() {
+    clearInterval(_ticker);
+    for (let i = 0; i < TOTAL_STEPS; i++) setStep(i, 'pending');
+  }
+
+  /* ── Score helpers ── */
+  function ringClass(s) { return s >= 70 ? 'ring-green' : s >= 40 ? 'ring-yellow' : 'ring-red'; }
+  function gradeClass(s) { return s >= 70 ? 'grade-green' : s >= 40 ? 'grade-yellow' : 'grade-red'; }
+
+  /* ── Render Results ── */
+  function renderResults(data) {
+    const score   = data.validation?.quality_score ?? 0;
+    const grade   = data.validation?.grade ?? '—';
+    const summary = data.validation?.summary ?? 'Analysis complete.';
+
+    $('scoreVal').textContent = score;
+    const ring = $('scoreRing');
+    ring.className = `score-ring ${ringClass(score)}`;
+
+    const chip = $('gradeChip');
+    chip.textContent = `Grade ${grade}`;
+    chip.className   = `score-grade ${gradeClass(score)}`;
+
+    $('scoreSummary').textContent = summary;
+
+    /* Stats */
+    const stats = [
+      { val: data.test_cases?.length       ?? 0,   lbl: 'Test Cases'      },
+      { val: data.bdd_scenarios?.length    ?? 0,   lbl: 'BDD Scenarios'   },
+      { val: data.commits?.length          ?? 0,   lbl: 'Commits'         },
+      { val: `${data.alignment?.score ?? 0}`,      lbl: 'Alignment Score' },
+      { val: data.validation?.issues?.length ?? 0, lbl: 'Issues Found'    },
+      { val: data.duration_seconds         ?? '—', lbl: 'Duration (s)'    },
+    ];
+    $('statsGrid').innerHTML = stats.map(s =>
+      `<div class="stat"><div class="stat-val">${s.val}</div><div class="stat-lbl">${s.lbl}</div></div>`
+    ).join('');
+
+    /* Downloads */
+    const downloads = [];
+    if (data.report_path) {
+      const f = data.report_path.split('/').pop();
+      downloads.push({ icon: '📊', label: 'HTML Report',      url: `${API}/outputs/reports/${f}` });
+    }
+    if (data.testcases_csv_path) {
+      const f = data.testcases_csv_path.split('/').pop();
+      downloads.push({ icon: '📋', label: 'Test Cases CSV',   url: `${API}/outputs/testcases/${f}` });
+    }
+    if (data.testcases_json_path) {
+      const f = data.testcases_json_path.split('/').pop();
+      downloads.push({ icon: '📄', label: 'Test Cases JSON',  url: `${API}/outputs/testcases/${f}` });
+    }
+    if (data.bdd_feature_path) {
+      const f = data.bdd_feature_path.split('/').pop();
+      downloads.push({ icon: '🧪', label: 'BDD Feature File', url: `${API}/outputs/bdd/${f}` });
+    }
+
+    $('dlGrid').innerHTML = downloads.map(d =>
+      `<a class="dl-link" href="${d.url}" download>
+         <span class="dl-icon">${d.icon}</span>
+         <span>${d.label}</span>
+       </a>`
+    ).join('');
+
+    show('resultsCard');
+  }
+
+  /* ── Main Workflow ── */
+  async function runWorkflow() {
+    const jiraId = $('jiraId').value.trim();
+    if (!jiraId) { $('jiraId').focus(); return; }
+
+    const btn = $('runBtn');
+    const err = $('errorBox');
+
+    /* Reset state */
+    err.classList.remove('show');
+    hide('resultsCard');
+    resetSteps();
+    show('progressCard');
+    btn.disabled = true;
+    btn.textContent = '⏳  Running…';
+    startTicker();
+
+    const payload = {
+      jira_id:     jiraId,
+      release:     $('release').value.trim() || null,
+      include_bdd: $('includeBdd').checked,
+      post_to_jira: $('postToJira').checked,
+    };
+
+    try {
+      const resp = await fetch(`${API}/run-qa`, {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify(payload),
+      });
+      const json = await resp.json();
+
+      stopTicker(resp.ok && json.success);
+
+      if (!resp.ok || !json.success) {
+        throw new Error(json.error || json.detail || 'Workflow failed — check server logs.');
+      }
+
+      renderResults(json.data);
+
+    } catch (ex) {
+      stopTicker(false);
+      err.textContent = `Error: ${ex.message}`;
+      err.classList.add('show');
+      hide('progressCard');
+    } finally {
+      btn.disabled = false;
+      btn.textContent = '▶  Run QA Analysis';
+    }
+  }
+
+  /* Allow Enter key on the Jira ID field */
+  document.addEventListener('DOMContentLoaded', () => {
+    $('jiraId').addEventListener('keydown', e => { if (e.key === 'Enter') runWorkflow(); });
+  });
+</script>
+</body>
+</html>

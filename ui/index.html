@@ -1,0 +1,1026 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>QA STLC Command Center — Client Reporting</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<style>
+:root{--primary:#2563eb;--primary-dark:#1d4ed8;--success:#16a34a;--danger:#dc2626;--warn:#d97706;--bg:#f8fafc;--card:#fff;--border:#e2e8f0;--text:#0f172a;--muted:#64748b}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:Inter,system-ui,sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+.tab-btn{padding:10px 18px;border:none;background:transparent;cursor:pointer;font-size:13px;font-weight:500;color:var(--muted);border-bottom:2px solid transparent;transition:.2s;white-space:nowrap}
+.tab-btn:hover{color:var(--primary);background:#eff6ff}
+.tab-btn.active{color:var(--primary);border-bottom-color:var(--primary);font-weight:600}
+.tab-panel{display:none;padding:24px}
+.tab-panel.active{display:block}
+.card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:20px;margin-bottom:16px;box-shadow:0 1px 3px rgba(0,0,0,.04)}
+.btn{padding:8px 20px;border-radius:8px;border:none;font-size:13px;font-weight:600;cursor:pointer;transition:.15s;display:inline-flex;align-items:center;gap:6px}
+.btn-primary{background:var(--primary);color:#fff}.btn-primary:hover{background:var(--primary-dark)}
+.btn-success{background:var(--success);color:#fff}.btn-success:hover{background:#15803d}
+.btn-danger{background:var(--danger);color:#fff}.btn-danger:hover{background:#b91c1c}
+.btn-outline{background:transparent;border:1px solid var(--border);color:var(--text)}.btn-outline:hover{background:#f1f5f9}
+.btn-sm{padding:5px 12px;font-size:12px}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+input,select,textarea{padding:8px 12px;border:1px solid var(--border);border-radius:8px;font-size:13px;font-family:inherit;width:100%;outline:none;transition:.15s}
+input:focus,select:focus,textarea:focus{border-color:var(--primary);box-shadow:0 0 0 3px rgba(37,99,235,.1)}
+label{display:block;font-size:12px;font-weight:600;color:var(--muted);margin-bottom:4px;text-transform:uppercase;letter-spacing:.5px}
+.badge{display:inline-block;padding:2px 8px;border-radius:99px;font-size:11px;font-weight:600}
+.badge-green{background:#dcfce7;color:#15803d}
+.badge-red{background:#fee2e2;color:#b91c1c}
+.badge-blue{background:#dbeafe;color:#1d4ed8}
+.badge-yellow{background:#fef9c3;color:#a16207}
+.badge-gray{background:#f1f5f9;color:#475569}
+.grade-ring{width:64px;height:64px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:800;border:4px solid}
+.grade-A{border-color:#16a34a;color:#16a34a}.grade-B{border-color:#2563eb;color:#2563eb}
+.grade-C{border-color:#d97706;color:#d97706}.grade-D{border-color:#ea580c;color:#ea580c}
+.grade-F{border-color:#dc2626;color:#dc2626}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{text-align:left;padding:10px 12px;background:#f8fafc;border-bottom:2px solid var(--border);font-weight:600;color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:.5px}
+td{padding:10px 12px;border-bottom:1px solid var(--border)}
+tr:hover{background:#f8fafc}
+.spinner{border:3px solid #e2e8f0;border-top:3px solid var(--primary);border-radius:50%;width:20px;height:20px;animation:spin .8s linear infinite;display:inline-block}
+@keyframes spin{to{transform:rotate(360deg)}}
+.toast{position:fixed;top:20px;right:20px;padding:12px 20px;border-radius:8px;color:#fff;font-size:13px;font-weight:500;z-index:9999;animation:slideIn .3s}
+@keyframes slideIn{from{transform:translateX(100%);opacity:0}to{transform:translateX(0);opacity:1}}
+.collapsible-header{cursor:pointer;display:flex;align-items:center;justify-content:space-between;padding:12px 0}
+.collapsible-header .arrow{transition:transform .2s}
+.collapsible-header.open .arrow{transform:rotate(90deg)}
+.collapsible-body{display:none;padding:12px 0}
+.collapsible-body.open{display:block}
+.checkbox-row{display:flex;align-items:center;gap:8px;padding:6px 0}
+.checkbox-row input[type="checkbox"]{width:auto;accent-color:var(--primary)}
+.status-dot{width:8px;height:8px;border-radius:50%;display:inline-block;margin-right:6px}
+.status-dot.green{background:#16a34a}.status-dot.yellow{background:#d97706}.status-dot.red{background:#dc2626}.status-dot.gray{background:#94a3b8}
+#app{max-width:1440px;margin:0 auto}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px}
+.grid-4{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+@media(max-width:768px){.grid-2,.grid-3,.grid-4{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div id="app">
+<!-- ═══ HEADER ═══ -->
+<header style="background:#fff;border-bottom:1px solid var(--border);padding:12px 24px;display:flex;align-items:center;justify-content:space-between">
+  <div style="display:flex;align-items:center;gap:12px">
+    <i class="fas fa-robot" style="font-size:24px;color:var(--primary)"></i>
+    <div>
+      <h1 style="font-size:18px;font-weight:700">QA STLC Command Center</h1>
+      <span style="font-size:12px;color:var(--muted)">Client Reporting — Wealth Management</span>
+    </div>
+  </div>
+  <div style="display:flex;align-items:center;gap:16px">
+    <div style="display:flex;align-items:center;gap:8px">
+      <label style="margin:0;font-size:12px">Team</label>
+      <select id="globalTeam" style="width:180px" onchange="onTeamChange()">
+        <option value="">— Select Team —</option>
+        <option value="statements">Statements</option>
+        <option value="confirms">Confirms</option>
+        <option value="letters">Letters / Correspondence</option>
+      </select>
+    </div>
+    <div id="statusBar" style="display:flex;align-items:center;gap:12px;font-size:12px;color:var(--muted)">
+      <span><span class="status-dot gray" id="jiraStatusDot"></span>Jira: <span id="jiraStatus">...</span></span>
+      <span><span class="status-dot gray" id="ghStatusDot"></span>GitHub: <span id="ghStatus">...</span></span>
+      <span><span class="status-dot gray" id="llmStatusDot"></span>LLM: <span id="llmStatus">...</span></span>
+    </div>
+    <input id="userNameInput" placeholder="Your name" style="width:120px;font-size:12px" value="">
+  </div>
+</header>
+
+<!-- ═══ TEAM DASHBOARD BANNER ═══ -->
+<div id="teamBanner" style="display:none;background:linear-gradient(135deg,#1e40af,#3b82f6);color:#fff;padding:14px 24px;font-size:13px">
+  <div style="display:flex;justify-content:space-between;align-items:center">
+    <div><i class="fas fa-clipboard-list"></i> <strong id="teamBannerName">—</strong> · Project: <strong>CRFLT</strong> · Board: <a id="teamBoardLink" href="#" target="_blank" style="color:#bfdbfe;text-decoration:underline">Open in Jira</a></div>
+    <div id="teamBannerSprint" style="font-size:12px;opacity:.85">Sprint: —</div>
+  </div>
+</div>
+
+<!-- ═══ TAB BAR ═══ -->
+<nav style="background:#fff;border-bottom:1px solid var(--border);display:flex;overflow-x:auto;padding:0 8px">
+  <button class="tab-btn active" data-tab="qaWorkflow"><i class="fas fa-play-circle"></i> QA Workflow</button>
+  <button class="tab-btn" data-tab="jiraOps"><i class="fas fa-ticket-alt"></i> Jira Operations</button>
+  <button class="tab-btn" data-tab="testMgmt"><i class="fas fa-vials"></i> Test Management</button>
+  <button class="tab-btn" data-tab="testData"><i class="fas fa-database"></i> Test Data</button>
+  <button class="tab-btn" data-tab="history"><i class="fas fa-history"></i> History</button>
+  <button class="tab-btn" data-tab="teamConfig"><i class="fas fa-cog"></i> Team Config</button>
+</nav>
+
+<!-- ═══════════════ TAB 1: QA WORKFLOW ═══════════════ -->
+<div id="tab-qaWorkflow" class="tab-panel active">
+  <div class="grid-2">
+    <!-- Left: Input -->
+    <div>
+      <div class="card">
+        <h3 style="font-size:15px;font-weight:700;margin-bottom:16px"><i class="fas fa-play" style="color:var(--primary)"></i> Run QA Analysis</h3>
+        <div style="margin-bottom:12px">
+          <label>Jira Ticket ID</label>
+          <input id="qaJiraId" placeholder="CRFLT-101">
+        </div>
+        <div style="margin-bottom:12px">
+          <label>Release (optional)</label>
+          <input id="qaRelease" placeholder="v2.1.0">
+        </div>
+
+        <!-- Expandable Step Selection -->
+        <div style="margin-bottom:12px;border:1px solid var(--border);border-radius:8px;padding:12px">
+          <div class="collapsible-header" onclick="toggleCollapsible(this)">
+            <span style="font-weight:600;font-size:13px"><i class="fas fa-tasks" style="color:var(--primary)"></i> Workflow Steps</span>
+            <i class="fas fa-chevron-right arrow"></i>
+          </div>
+          <div class="collapsible-body">
+            <div class="checkbox-row"><input type="checkbox" id="step_quality" checked><label style="margin:0;font-size:13px;font-weight:normal;text-transform:none;letter-spacing:0">Story Quality Assessment (score + improvement suggestions)</label></div>
+            <div class="checkbox-row"><input type="checkbox" id="step_alignment" checked><label style="margin:0;font-size:13px;font-weight:normal;text-transform:none;letter-spacing:0">Code–Jira Alignment (commits vs acceptance criteria)</label></div>
+            <div class="checkbox-row"><input type="checkbox" id="step_testcases" checked><label style="margin:0;font-size:13px;font-weight:normal;text-transform:none;letter-spacing:0">Test Case Generation (Xray-ready format)</label></div>
+            <div class="checkbox-row"><input type="checkbox" id="step_bdd" checked><label style="margin:0;font-size:13px;font-weight:normal;text-transform:none;letter-spacing:0">BDD Gherkin Scenarios (.feature file)</label></div>
+            <div class="checkbox-row"><input type="checkbox" id="step_stepdefs" checked><label style="margin:0;font-size:13px;font-weight:normal;text-transform:none;letter-spacing:0">Step Definitions (pytest-bdd / Playwright repo aligned)</label></div>
+            <div style="margin-top:8px;display:flex;gap:8px">
+              <select id="stepDefStyle" style="width:200px;font-size:12px">
+                <option value="pytest_bdd">pytest-bdd (repo-aligned)</option>
+                <option value="generic">Generic step defs</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <div style="margin-bottom:12px">
+          <label>Custom Instructions (optional)</label>
+          <textarea id="qaCustomPrompt" rows="3" placeholder="Focus on regression scenarios; ignore UI tests..."></textarea>
+        </div>
+        <div style="display:flex;gap:8px">
+          <button class="btn btn-primary" id="btnRunQA" onclick="runQA()"><i class="fas fa-rocket"></i> Run QA Analysis</button>
+          <button class="btn btn-outline" onclick="runRelease()"><i class="fas fa-layer-group"></i> Run Release Batch</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3 style="font-size:15px;font-weight:700;margin-bottom:12px"><i class="fas fa-bolt" style="color:var(--warn)"></i> Quick Tasks</h3>
+        <div class="grid-2" style="gap:8px">
+          <button class="btn btn-outline btn-sm" onclick="quickRegression()"><i class="fas fa-redo"></i> Regression Tests</button>
+          <button class="btn btn-outline btn-sm" onclick="switchTab('jiraOps')"><i class="fas fa-plus-circle"></i> Create Jira Tickets</button>
+          <button class="btn btn-outline btn-sm" onclick="switchTab('testMgmt')"><i class="fas fa-clipboard-check"></i> Test Plan Builder</button>
+          <button class="btn btn-outline btn-sm" onclick="switchTab('testData')"><i class="fas fa-database"></i> Manage Test Data</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right: Results -->
+    <div>
+      <div class="card" id="qaResultsCard" style="display:none">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:16px">
+          <h3 style="font-size:15px;font-weight:700"><i class="fas fa-chart-bar" style="color:var(--primary)"></i> QA Results</h3>
+          <div id="qaGradeRing" class="grade-ring grade-B" style="display:none">—</div>
+        </div>
+
+        <!-- Score cards -->
+        <div class="grid-3" id="qaScoreCards" style="margin-bottom:16px">
+          <div style="text-align:center;padding:12px;background:#f8fafc;border-radius:8px">
+            <div style="font-size:11px;color:var(--muted);text-transform:uppercase">Quality</div>
+            <div id="qaScoreQuality" style="font-size:28px;font-weight:800;color:var(--primary)">—</div>
+          </div>
+          <div style="text-align:center;padding:12px;background:#f8fafc;border-radius:8px">
+            <div style="font-size:11px;color:var(--muted);text-transform:uppercase">Alignment</div>
+            <div id="qaScoreAlignment" style="font-size:28px;font-weight:800;color:var(--primary)">—</div>
+          </div>
+          <div style="text-align:center;padding:12px;background:#f8fafc;border-radius:8px">
+            <div style="font-size:11px;color:var(--muted);text-transform:uppercase">Test Cases</div>
+            <div id="qaScoreTestCases" style="font-size:28px;font-weight:800;color:var(--primary)">—</div>
+          </div>
+        </div>
+
+        <!-- Validation Summary -->
+        <div id="qaValidationSection" style="display:none;margin-bottom:16px">
+          <h4 style="font-size:13px;font-weight:600;margin-bottom:8px">Validation Summary</h4>
+          <div id="qaValidationSummary" style="font-size:13px;color:var(--muted)"></div>
+          <div id="qaIssuesList" style="margin-top:8px"></div>
+        </div>
+
+        <!-- Downloads -->
+        <div id="qaDownloads" style="display:none;margin-bottom:16px">
+          <h4 style="font-size:13px;font-weight:600;margin-bottom:8px">Downloads</h4>
+          <div style="display:flex;flex-wrap:wrap;gap:6px" id="qaDownloadLinks"></div>
+        </div>
+
+        <!-- Test Cases Table -->
+        <div id="qaTestCasesSection" style="display:none;margin-bottom:16px">
+          <h4 style="font-size:13px;font-weight:600;margin-bottom:8px">Generated Test Cases</h4>
+          <div style="max-height:300px;overflow-y:auto;border:1px solid var(--border);border-radius:8px">
+            <table id="qaTestCasesTable"><thead><tr><th>ID</th><th>Scenario</th><th>Type</th><th>Priority</th></tr></thead><tbody></tbody></table>
+          </div>
+        </div>
+
+        <!-- Actions -->
+        <div id="qaActions" style="display:none;display:flex;gap:8px;flex-wrap:wrap">
+          <button class="btn btn-success btn-sm" onclick="uploadToJira()"><i class="fas fa-upload"></i> Upload to Jira</button>
+          <button class="btn btn-primary btn-sm" onclick="pushTests()"><i class="fas fa-code-branch"></i> Push Tests to Repo</button>
+          <button class="btn btn-outline btn-sm" onclick="downloadReport()"><i class="fas fa-file-alt"></i> View Report</button>
+        </div>
+      </div>
+
+      <!-- Loading -->
+      <div class="card" id="qaLoadingCard" style="display:none;text-align:center;padding:40px">
+        <div class="spinner" style="width:40px;height:40px;margin:0 auto 16px"></div>
+        <p style="font-weight:600">Running QA Analysis...</p>
+        <p id="qaLoadingStep" style="font-size:12px;color:var(--muted);margin-top:4px">Initializing workflow</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ TAB 2: JIRA OPERATIONS ═══════════════ -->
+<div id="tab-jiraOps" class="tab-panel">
+  <div class="grid-2">
+    <div>
+      <!-- Query Tickets -->
+      <div class="card">
+        <h3 style="font-size:15px;font-weight:700;margin-bottom:16px"><i class="fas fa-search" style="color:var(--primary)"></i> Query Jira Tickets</h3>
+        <div class="grid-2" style="gap:8px;margin-bottom:12px">
+          <div><label>Component</label><select id="jqComponent"><option value="">All</option><option>Statements</option><option>Confirms</option><option>Letters</option></select></div>
+          <div><label>Status</label><select id="jqStatus"><option value="">All</option><option>Open</option><option>In Progress</option><option>In Review</option><option>Done</option></select></div>
+          <div><label>Assignee</label><input id="jqAssignee" placeholder="e.g. john.smith"></div>
+          <div><label>Sprint</label><input id="jqSprint" placeholder="CRFLT Sprint 14"></div>
+          <div><label>Fix Version</label><input id="jqFixVersion" placeholder="v2.1.0"></div>
+          <div><label>Type</label><select id="jqType"><option value="">All</option><option>Epic</option><option>Story</option><option>Bug</option><option>Sub-task</option><option>Test</option></select></div>
+        </div>
+        <div style="margin-bottom:12px"><label>Text Search</label><input id="jqTextSearch" placeholder="Search in summary/description"></div>
+        <button class="btn btn-primary" onclick="queryJiraTickets()"><i class="fas fa-search"></i> Search</button>
+      </div>
+
+      <!-- Create Ticket -->
+      <div class="card">
+        <h3 style="font-size:15px;font-weight:700;margin-bottom:16px"><i class="fas fa-plus-circle" style="color:var(--success)"></i> Create Jira Ticket</h3>
+        <div class="grid-2" style="gap:8px;margin-bottom:12px">
+          <div><label>Type</label><select id="jcType"><option>Story</option><option>Epic</option><option>Bug</option><option>Sub-task</option><option>Test</option></select></div>
+          <div><label>Priority</label><select id="jcPriority"><option>Medium</option><option>Critical</option><option>High</option><option>Low</option></select></div>
+          <div><label>Component</label><select id="jcComponent"><option value="">—</option><option>Statements</option><option>Confirms</option><option>Letters</option></select></div>
+          <div><label>Assignee</label><input id="jcAssignee" placeholder="john.smith"></div>
+        </div>
+        <div style="margin-bottom:8px"><label>Summary</label><input id="jcSummary" placeholder="Ticket title"></div>
+        <div style="margin-bottom:8px"><label>Description</label><textarea id="jcDescription" rows="3" placeholder="Detailed description"></textarea></div>
+        <div style="margin-bottom:8px"><label>Acceptance Criteria</label><textarea id="jcAC" rows="3" placeholder="Given... When... Then..."></textarea></div>
+        <div class="grid-3" style="gap:8px;margin-bottom:12px">
+          <div><label>Epic ID</label><input id="jcEpic" placeholder="CRFLT-100"></div>
+          <div><label>Fix Version</label><input id="jcFixVer" placeholder="v2.1.0"></div>
+          <div><label>Points</label><input id="jcPoints" type="number" placeholder="5"></div>
+        </div>
+        <button class="btn btn-success" onclick="createJiraTicket()"><i class="fas fa-plus"></i> Create Ticket</button>
+      </div>
+    </div>
+
+    <div>
+      <!-- Query Results -->
+      <div class="card">
+        <h3 style="font-size:15px;font-weight:700;margin-bottom:12px"><i class="fas fa-list" style="color:var(--primary)"></i> Tickets <span id="jiraResultCount" class="badge badge-blue" style="margin-left:8px">0</span></h3>
+        <div style="max-height:500px;overflow-y:auto">
+          <table id="jiraResultsTable"><thead><tr><th><input type="checkbox" id="jiraSelectAll" onchange="toggleAllJiraSelect()"></th><th>ID</th><th>Summary</th><th>Status</th><th>Type</th><th>Assignee</th></tr></thead><tbody></tbody></table>
+        </div>
+        <div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap">
+          <button class="btn btn-outline btn-sm" onclick="bulkTransitionDialog()"><i class="fas fa-exchange-alt"></i> Bulk Transition</button>
+          <button class="btn btn-outline btn-sm" onclick="bulkUpdateDialog()"><i class="fas fa-edit"></i> Bulk Update</button>
+          <button class="btn btn-outline btn-sm" onclick="bulkCommentDialog()"><i class="fas fa-comment"></i> Bulk Comment</button>
+          <button class="btn btn-outline btn-sm" onclick="runQAForSelected()"><i class="fas fa-play"></i> Run QA on Selected</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ TAB 3: TEST MANAGEMENT ═══════════════ -->
+<div id="tab-testMgmt" class="tab-panel">
+  <div class="grid-2">
+    <div>
+      <!-- Test Plan Builder -->
+      <div class="card">
+        <h3 style="font-size:15px;font-weight:700;margin-bottom:16px"><i class="fas fa-clipboard-check" style="color:var(--primary)"></i> Test Plan Builder</h3>
+        <div style="margin-bottom:8px"><label>Plan Name</label><input id="tpName" placeholder="CRFLT v2.1.0 Regression"></div>
+        <div class="grid-2" style="gap:8px;margin-bottom:8px">
+          <div><label>Fix Version</label><input id="tpFixVersion" placeholder="v2.1.0"></div>
+          <div><label>Team</label><select id="tpTeam"><option value="statements">Statements</option><option value="confirms">Confirms</option><option value="letters">Letters</option></select></div>
+        </div>
+        <div style="margin-bottom:12px"><label>Ticket IDs (comma-separated)</label><input id="tpTickets" placeholder="CRFLT-101, CRFLT-102, CRFLT-103"></div>
+        <button class="btn btn-primary" onclick="createTestPlan()"><i class="fas fa-plus"></i> Create Test Plan</button>
+      </div>
+
+      <!-- Test Execution -->
+      <div class="card">
+        <h3 style="font-size:15px;font-weight:700;margin-bottom:16px"><i class="fas fa-play-circle" style="color:var(--success)"></i> Test Execution</h3>
+        <div style="margin-bottom:8px"><label>Plan ID</label><input id="teSelectPlan" placeholder="plan_..."></div>
+        <div style="margin-bottom:8px"><label>Set ID (optional)</label><input id="teSelectSet" placeholder="set_..."></div>
+        <div style="margin-bottom:12px"><label>Ticket IDs (comma-separated)</label><input id="teTickets" placeholder="CRFLT-101, CRFLT-102"></div>
+        <button class="btn btn-success" onclick="createTestExecution()"><i class="fas fa-play"></i> Create Execution</button>
+      </div>
+    </div>
+
+    <div>
+      <!-- Test Plans List -->
+      <div class="card">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+          <h3 style="font-size:15px;font-weight:700"><i class="fas fa-th-list" style="color:var(--primary)"></i> Test Plans</h3>
+          <button class="btn btn-outline btn-sm" onclick="loadTestPlans()"><i class="fas fa-sync"></i> Refresh</button>
+        </div>
+        <div id="testPlansContainer" style="max-height:300px;overflow-y:auto"><p style="color:var(--muted);font-size:13px;text-align:center;padding:20px">Click Refresh to load test plans</p></div>
+      </div>
+
+      <!-- Mark Results -->
+      <div class="card">
+        <h3 style="font-size:15px;font-weight:700;margin-bottom:16px"><i class="fas fa-check-double" style="color:var(--success)"></i> Mark Test Result</h3>
+        <div class="grid-2" style="gap:8px;margin-bottom:8px">
+          <div><label>Execution ID</label><input id="mrExecId" placeholder="exec_..."></div>
+          <div><label>Ticket ID</label><input id="mrTicketId" placeholder="CRFLT-101"></div>
+        </div>
+        <div class="grid-2" style="gap:8px;margin-bottom:8px">
+          <div><label>Result</label><select id="mrResult"><option>Pass</option><option>Fail</option><option>Blocked</option><option>Not Run</option></select></div>
+          <div><label>Comment</label><input id="mrComment" placeholder="Optional note"></div>
+        </div>
+        <button class="btn btn-success" onclick="markTestResult()"><i class="fas fa-check"></i> Mark Result</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ TAB 4: TEST DATA ═══════════════ -->
+<div id="tab-testData" class="tab-panel">
+  <div class="grid-2">
+    <div>
+      <div class="card">
+        <h3 style="font-size:15px;font-weight:700;margin-bottom:16px"><i class="fas fa-database" style="color:var(--primary)"></i> Upstream Systems</h3>
+        <div id="upstreamSystemsList"></div>
+      </div>
+      <div class="card">
+        <h3 style="font-size:15px;font-weight:700;margin-bottom:16px"><i class="fas fa-search" style="color:var(--primary)"></i> Discover / Create Test Data</h3>
+        <div class="grid-2" style="gap:8px;margin-bottom:8px">
+          <div><label>Upstream System</label>
+            <select id="tdSystem"><option value="retirement">Retirement</option><option value="mutual_fund">Mutual Fund</option><option value="alt_investment">Alt Investment</option><option value="finra_mail">FINRA Mail</option><option value="stocks">Stocks</option><option value="etrade">E*Trade</option><option value="program_banks">Program Banks</option></select>
+          </div>
+          <div><label>Action</label><select id="tdAction"><option value="discover">Discover Existing</option><option value="create">Create New</option></select></div>
+        </div>
+        <div style="margin-bottom:8px"><label>Data Type</label><input id="tdDataType" placeholder="e.g. retirement_account, fund_position"></div>
+        <div style="margin-bottom:12px"><label>Filters / Spec (JSON)</label><textarea id="tdParams" rows="3" placeholder='{"account_type": "401k", "balance_min": 10000}'></textarea></div>
+        <button class="btn btn-primary" onclick="manageTestData()"><i class="fas fa-cog"></i> Execute</button>
+      </div>
+    </div>
+    <div>
+      <div class="card">
+        <h3 style="font-size:15px;font-weight:700;margin-bottom:12px"><i class="fas fa-terminal" style="color:var(--primary)"></i> Upstream Response</h3>
+        <pre id="tdResponseArea" style="background:#1e293b;color:#e2e8f0;padding:16px;border-radius:8px;font-size:12px;max-height:600px;overflow:auto;white-space:pre-wrap">No data yet. Select a system and action above.</pre>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ TAB 5: HISTORY ═══════════════ -->
+<div id="tab-history" class="tab-panel">
+  <div class="card">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+      <h3 style="font-size:15px;font-weight:700"><i class="fas fa-history" style="color:var(--primary)"></i> Run History</h3>
+      <div style="display:flex;gap:8px;align-items:center">
+        <select id="histFilterTeam" style="width:140px;font-size:12px" onchange="loadHistory()"><option value="">All Teams</option><option value="statements">Statements</option><option value="confirms">Confirms</option><option value="letters">Letters</option></select>
+        <button class="btn btn-outline btn-sm" onclick="loadHistory()"><i class="fas fa-sync"></i> Refresh</button>
+      </div>
+    </div>
+
+    <!-- Stats row -->
+    <div class="grid-4" id="histStatsRow" style="margin-bottom:16px">
+      <div style="text-align:center;padding:12px;background:#f8fafc;border-radius:8px"><div style="font-size:11px;color:var(--muted)">TOTAL RUNS</div><div id="hsTotalRuns" style="font-size:24px;font-weight:800">0</div></div>
+      <div style="text-align:center;padding:12px;background:#f0fdf4;border-radius:8px"><div style="font-size:11px;color:var(--muted)">COMPLETED</div><div id="hsCompleted" style="font-size:24px;font-weight:800;color:var(--success)">0</div></div>
+      <div style="text-align:center;padding:12px;background:#fef2f2;border-radius:8px"><div style="font-size:11px;color:var(--muted)">FAILED</div><div id="hsFailed" style="font-size:24px;font-weight:800;color:var(--danger)">0</div></div>
+      <div style="text-align:center;padding:12px;background:#eff6ff;border-radius:8px"><div style="font-size:11px;color:var(--muted)">AVG QUALITY</div><div id="hsAvgQuality" style="font-size:24px;font-weight:800;color:var(--primary)">—</div></div>
+    </div>
+
+    <div style="max-height:500px;overflow-y:auto">
+      <table id="historyTable"><thead><tr><th>Time</th><th>Jira</th><th>Team</th><th>Type</th><th>User</th><th>Quality</th><th>Test Cases</th><th>Status</th><th>Duration</th><th>Downloads</th><th>Actions</th></tr></thead><tbody></tbody></table>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ TAB 6: TEAM CONFIG ═══════════════ -->
+<div id="tab-teamConfig" class="tab-panel">
+  <div class="grid-2">
+    <div>
+      <div class="card">
+        <h3 style="font-size:15px;font-weight:700;margin-bottom:16px"><i class="fas fa-cog" style="color:var(--primary)"></i> Team Configuration</h3>
+        <div style="margin-bottom:12px"><label>Select Team</label><select id="tcSelect" style="width:100%" onchange="loadTeamConfigEditor()"><option value="">— Choose —</option></select></div>
+        <textarea id="tcEditor" rows="20" style="font-family:'Fira Code',monospace;font-size:12px;line-height:1.6" placeholder="Select a team to view/edit its configuration"></textarea>
+        <div style="margin-top:12px;display:flex;gap:8px">
+          <button class="btn btn-primary" onclick="saveTeamConfig()"><i class="fas fa-save"></i> Save Config</button>
+        </div>
+      </div>
+    </div>
+    <div>
+      <div class="card">
+        <h3 style="font-size:15px;font-weight:700;margin-bottom:12px"><i class="fas fa-project-diagram" style="color:var(--primary)"></i> CRFLT Project Structure</h3>
+        <div id="crfltBoardsContainer"></div>
+      </div>
+      <div class="card">
+        <h3 style="font-size:15px;font-weight:700;margin-bottom:12px"><i class="fas fa-ticket-alt" style="color:var(--primary)"></i> Sample Tickets (CRFLT)</h3>
+        <div style="max-height:400px;overflow-y:auto">
+          <table id="sampleTicketsTable"><thead><tr><th>ID</th><th>Summary</th><th>Component</th><th>Status</th><th>Type</th></tr></thead><tbody></tbody></table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ MODAL ═══ -->
+<div id="modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:9998;display:none;align-items:center;justify-content:center">
+  <div style="background:#fff;border-radius:12px;padding:24px;max-width:500px;width:90%;max-height:80vh;overflow-y:auto">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+      <h3 id="modalTitle" style="font-size:15px;font-weight:700"></h3>
+      <button class="btn btn-outline btn-sm" onclick="closeModal()">&times;</button>
+    </div>
+    <div id="modalBody"></div>
+    <div id="modalFooter" style="margin-top:16px;display:flex;gap:8px;justify-content:flex-end"></div>
+  </div>
+</div>
+</div>
+
+<script>
+const API = '/api/v1';
+let currentTeam = null;
+let currentBoardInfo = null;
+let lastQAResult = null;
+let selectedJiraTickets = [];
+
+// ── Init ────────────────────────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', () => {
+  initTabs();
+  loadConfig();
+  loadUpstreamSystems();
+  loadTeamsList();
+  loadCRFLTBoards();
+  loadSampleTickets();
+  loadHistory();
+});
+
+// ── Tabs ────────────────────────────────────────────────────────────────────
+function initTabs() {
+  document.querySelectorAll('.tab-btn').forEach(btn => {
+    btn.addEventListener('click', () => switchTab(btn.dataset.tab));
+  });
+}
+
+function switchTab(tabId) {
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  document.querySelector(`[data-tab="${tabId}"]`)?.classList.add('active');
+  document.getElementById(`tab-${tabId}`)?.classList.add('active');
+}
+
+// ── Collapsible ─────────────────────────────────────────────────────────────
+function toggleCollapsible(header) {
+  header.classList.toggle('open');
+  const body = header.nextElementSibling;
+  body.classList.toggle('open');
+}
+
+// ── Toast ───────────────────────────────────────────────────────────────────
+function toast(msg, type = 'info') {
+  const colors = { info: '#2563eb', success: '#16a34a', error: '#dc2626', warn: '#d97706' };
+  const el = document.createElement('div');
+  el.className = 'toast';
+  el.style.background = colors[type] || colors.info;
+  el.textContent = msg;
+  document.body.appendChild(el);
+  setTimeout(() => el.remove(), 4000);
+}
+
+// ── API helper ──────────────────────────────────────────────────────────────
+async function api(path, opts = {}) {
+  const url = API + path;
+  const config = { headers: { 'Content-Type': 'application/json' }, ...opts };
+  if (config.body && typeof config.body === 'object') config.body = JSON.stringify(config.body);
+  const res = await fetch(url, config);
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ detail: res.statusText }));
+    throw new Error(err.detail || JSON.stringify(err));
+  }
+  return res.json();
+}
+
+// ── Config / Status ─────────────────────────────────────────────────────────
+async function loadConfig() {
+  try {
+    const cfg = await api('/config');
+    setStatus('jira', cfg.jira_connected ? 'live' : 'mock', cfg.jira_connected);
+    setStatus('gh', cfg.github_connected ? 'live' : 'mock', cfg.github_connected);
+    setStatus('llm', cfg.provider_name + ' / ' + cfg.model, true);
+  } catch (e) {
+    setStatus('jira', 'error', false);
+    setStatus('gh', 'error', false);
+    setStatus('llm', 'error', false);
+  }
+}
+
+function setStatus(key, text, ok) {
+  document.getElementById(key + 'Status').textContent = text;
+  const dot = document.getElementById(key + 'StatusDot');
+  dot.className = 'status-dot ' + (ok ? 'green' : 'yellow');
+}
+
+// ── Team Selection ──────────────────────────────────────────────────────────
+async function onTeamChange() {
+  const team = document.getElementById('globalTeam').value;
+  currentTeam = team || null;
+  const banner = document.getElementById('teamBanner');
+  if (!team) { banner.style.display = 'none'; return; }
+  try {
+    const data = await api('/crflt/boards');
+    const board = data.boards.find(b => b.team_id === team);
+    if (board) {
+      currentBoardInfo = board;
+      document.getElementById('teamBannerName').textContent = board.team_name;
+      document.getElementById('teamBoardLink').href = board.jira_url;
+      document.getElementById('teamBannerSprint').textContent = 'Sprint: ' + board.sprint;
+      banner.style.display = 'block';
+    }
+  } catch (e) { toast('Failed to load team info', 'error'); }
+}
+
+// ── QA Workflow ─────────────────────────────────────────────────────────────
+async function runQA() {
+  const jiraId = document.getElementById('qaJiraId').value.trim();
+  if (!jiraId) { toast('Enter a Jira ticket ID', 'warn'); return; }
+
+  const body = {
+    jira_id: jiraId,
+    release: document.getElementById('qaRelease').value.trim() || null,
+    team_id: currentTeam,
+    triggered_by: document.getElementById('userNameInput').value.trim() || 'anonymous',
+    custom_prompt: document.getElementById('qaCustomPrompt').value.trim() || null,
+    steps: {
+      ticket_quality: document.getElementById('step_quality').checked,
+      code_alignment: document.getElementById('step_alignment').checked,
+      test_cases: document.getElementById('step_testcases').checked,
+      bdd_scenarios: document.getElementById('step_bdd').checked,
+      step_definitions: document.getElementById('step_stepdefs').checked,
+      step_def_style: document.getElementById('stepDefStyle').value,
+    },
+  };
+
+  document.getElementById('qaResultsCard').style.display = 'none';
+  document.getElementById('qaLoadingCard').style.display = 'block';
+  document.getElementById('btnRunQA').disabled = true;
+
+  try {
+    const res = await api('/run-qa', { method: 'POST', body });
+    lastQAResult = res;
+    renderQAResults(res);
+    toast('QA analysis complete!', 'success');
+  } catch (e) {
+    toast('QA analysis failed: ' + e.message, 'error');
+    document.getElementById('qaLoadingCard').style.display = 'none';
+  } finally {
+    document.getElementById('btnRunQA').disabled = false;
+  }
+}
+
+function renderQAResults(res) {
+  document.getElementById('qaLoadingCard').style.display = 'none';
+  document.getElementById('qaResultsCard').style.display = 'block';
+  const d = res.data;
+  if (!d) return;
+
+  // Scores
+  const qs = d.validation?.quality_score;
+  const as = d.alignment?.score;
+  document.getElementById('qaScoreQuality').textContent = qs != null ? qs : '—';
+  document.getElementById('qaScoreAlignment').textContent = as != null ? as : '—';
+  document.getElementById('qaScoreTestCases').textContent = d.test_cases?.length || 0;
+
+  // Grade ring
+  const grade = d.validation?.grade || '—';
+  const ring = document.getElementById('qaGradeRing');
+  ring.textContent = grade;
+  ring.className = 'grade-ring grade-' + grade.charAt(0);
+  ring.style.display = 'flex';
+
+  // Validation summary
+  if (d.validation) {
+    document.getElementById('qaValidationSection').style.display = 'block';
+    document.getElementById('qaValidationSummary').textContent = d.validation.summary || '';
+    const issuesHtml = (d.validation.issues || []).map(i =>
+      `<div style="padding:6px 0;border-bottom:1px solid var(--border);font-size:12px">
+        <span class="badge badge-${i.severity === 'critical' ? 'red' : i.severity === 'warning' ? 'yellow' : 'blue'}">${i.severity}</span>
+        <strong>${i.field}</strong>: ${i.message}
+      </div>`
+    ).join('');
+    document.getElementById('qaIssuesList').innerHTML = issuesHtml;
+  }
+
+  // Downloads
+  const downloads = [];
+  if (d.report_path) downloads.push({ label: 'HTML Report', path: toDownloadUrl(d.report_path), icon: 'file-alt' });
+  if (d.testcases_csv_path) downloads.push({ label: 'Test Cases CSV ↓', path: toDownloadUrl(d.testcases_csv_path), icon: 'file-csv' });
+  if (d.testcases_json_path) downloads.push({ label: 'Test Cases JSON ↓', path: toDownloadUrl(d.testcases_json_path), icon: 'file-code' });
+  if (d.bdd_feature_path) downloads.push({ label: 'BDD Feature', path: toDownloadUrl(d.bdd_feature_path), icon: 'file' });
+  if (downloads.length) {
+    document.getElementById('qaDownloads').style.display = 'block';
+    document.getElementById('qaDownloadLinks').innerHTML = downloads.map(dl =>
+      `<a class="btn btn-outline btn-sm" href="${dl.path}" target="_blank" rel="noopener"><i class="fas fa-${dl.icon}"></i> ${dl.label}</a>`
+    ).join('');
+  }
+
+  // Test cases table
+  if (d.test_cases?.length) {
+    document.getElementById('qaTestCasesSection').style.display = 'block';
+    const tbody = document.querySelector('#qaTestCasesTable tbody');
+    tbody.innerHTML = d.test_cases.map(tc =>
+      `<tr><td><code>${tc.test_id}</code></td><td>${tc.scenario}</td><td><span class="badge badge-gray">${tc.test_type}</span></td><td>${tc.priority}</td></tr>`
+    ).join('');
+  }
+
+  // Actions
+  document.getElementById('qaActions').style.display = 'flex';
+}
+
+async function runRelease() {
+  const rel = document.getElementById('qaRelease').value.trim();
+  if (!rel) { toast('Enter a release version', 'warn'); return; }
+  try {
+    toast('Processing release ' + rel + '...', 'info');
+    const res = await api('/run-release', { method: 'POST', body: { release: rel, include_bdd: true, team_id: currentTeam } });
+    toast(`Release done: ${res.total_tickets} tickets processed`, 'success');
+  } catch (e) { toast('Release failed: ' + e.message, 'error'); }
+}
+
+async function uploadToJira() {
+  if (!lastQAResult?.data) { toast('No results to upload', 'warn'); return; }
+  const d = lastQAResult.data;
+  try {
+    await api('/upload-to-jira', { method: 'POST', body: {
+      jira_id: d.jira_id,
+      edited_summary: d.validation?.summary || 'QA Analysis Complete',
+      edited_issues: (d.validation?.issues || []).map(i => `[${i.severity}] ${i.field}: ${i.message}`),
+      quality_score: d.validation?.quality_score || 0,
+      grade: d.validation?.grade || 'N/A',
+      attach_report: true,
+      report_filename: d.report_path?.split('/').pop(),
+    }});
+    toast('Uploaded to Jira!', 'success');
+  } catch (e) { toast('Jira upload failed: ' + e.message, 'error'); }
+}
+
+async function pushTests() {
+  if (!lastQAResult?.data) return;
+  try {
+    await api('/push-playwright-tests', { method: 'POST', body: { jira_id: lastQAResult.data.jira_id, create_pr: true } });
+    toast('Tests pushed & PR created!', 'success');
+  } catch (e) { toast('Push failed: ' + e.message, 'error'); }
+}
+
+function downloadReport() {
+  if (lastQAResult?.data?.report_path) window.open(toDownloadUrl(lastQAResult.data.report_path), '_blank');
+}
+
+async function quickRegression() {
+  const jiraId = document.getElementById('qaJiraId').value.trim();
+  if (!jiraId) { toast('Enter a Jira ID first', 'warn'); return; }
+  try {
+    toast('Generating regression tests...', 'info');
+    const res = await api('/quick/regression-tests', { method: 'POST', body: { jira_id: jiraId, team_id: currentTeam, triggered_by: document.getElementById('userNameInput').value || 'anonymous' } });
+    toast(`Regression tests generated: ${res.test_cases} test cases`, 'success');
+  } catch (e) { toast('Failed: ' + e.message, 'error'); }
+}
+
+// ── Jira Operations ─────────────────────────────────────────────────────────
+async function queryJiraTickets() {
+  const body = {
+    component: val('jqComponent'), status: val('jqStatus'), assignee: val('jqAssignee'),
+    sprint: val('jqSprint'), fix_version: val('jqFixVersion'), ticket_type: val('jqType'),
+    text_search: val('jqTextSearch'), limit: 50,
+  };
+  try {
+    const res = await api('/jira-ops/query', { method: 'POST', body });
+    document.getElementById('jiraResultCount').textContent = res.total;
+    const tbody = document.querySelector('#jiraResultsTable tbody');
+    tbody.innerHTML = res.tickets.map(t =>
+      `<tr><td><input type="checkbox" class="jira-select" value="${t.id}"></td><td><code>${t.id}</code></td><td>${t.summary}</td><td><span class="badge badge-${statusColor(t.status)}">${t.status}</span></td><td>${t.type || '—'}</td><td>${t.assignee || '—'}</td></tr>`
+    ).join('');
+    toast(`Found ${res.total} tickets`, 'success');
+  } catch (e) { toast('Query failed: ' + e.message, 'error'); }
+}
+
+function getSelectedJiraIds() {
+  return [...document.querySelectorAll('.jira-select:checked')].map(c => c.value);
+}
+
+function toggleAllJiraSelect() {
+  const checked = document.getElementById('jiraSelectAll').checked;
+  document.querySelectorAll('.jira-select').forEach(c => c.checked = checked);
+}
+
+async function createJiraTicket() {
+  const body = {
+    type: val('jcType'), summary: val('jcSummary'), description: val('jcDescription'),
+    acceptance_criteria: val('jcAC'), component: val('jcComponent'), assignee: val('jcAssignee'),
+    priority: val('jcPriority'), epic_id: val('jcEpic') || null, fix_version: val('jcFixVer') || null,
+    story_points: parseInt(val('jcPoints')) || null, team_id: currentTeam,
+  };
+  if (!body.summary) { toast('Summary is required', 'warn'); return; }
+  try {
+    const res = await api('/jira-ops/create-ticket', { method: 'POST', body });
+    toast(`Ticket created: ${res.id}`, 'success');
+  } catch (e) { toast('Failed: ' + e.message, 'error'); }
+}
+
+function bulkTransitionDialog() {
+  const ids = getSelectedJiraIds();
+  if (!ids.length) { toast('Select tickets first', 'warn'); return; }
+  showModal('Bulk Transition', `
+    <p style="font-size:13px;margin-bottom:12px">${ids.length} ticket(s) selected: ${ids.join(', ')}</p>
+    <label>New Status</label>
+    <select id="modalTransStatus"><option>In Progress</option><option>In Review</option><option>Done</option><option>Open</option></select>
+    <div style="margin-top:8px"><label>Comment (optional)</label><input id="modalTransComment" placeholder="Transition reason"></div>
+  `, [{ label: 'Transition', cls: 'btn-primary', action: () => doBulkTransition(ids) }]);
+}
+
+async function doBulkTransition(ids) {
+  try {
+    await api('/jira-ops/transition', { method: 'POST', body: { ticket_ids: ids, new_status: val('modalTransStatus'), comment: val('modalTransComment') || null } });
+    toast('Transitioned ' + ids.length + ' tickets', 'success');
+    closeModal();
+    queryJiraTickets();
+  } catch (e) { toast('Failed: ' + e.message, 'error'); }
+}
+
+function bulkUpdateDialog() {
+  const ids = getSelectedJiraIds();
+  if (!ids.length) { toast('Select tickets first', 'warn'); return; }
+  showModal('Bulk Update Fields', `
+    <p style="font-size:13px;margin-bottom:12px">${ids.length} ticket(s) selected</p>
+    <div class="grid-2" style="gap:8px">
+      <div><label>Assignee</label><input id="modalBuAssignee" placeholder="Leave blank to skip"></div>
+      <div><label>Priority</label><select id="modalBuPriority"><option value="">—</option><option>Critical</option><option>High</option><option>Medium</option><option>Low</option></select></div>
+      <div><label>Fix Version</label><input id="modalBuFixVer"></div>
+      <div><label>Sprint</label><input id="modalBuSprint"></div>
+    </div>
+  `, [{ label: 'Update All', cls: 'btn-primary', action: () => doBulkUpdate(ids) }]);
+}
+
+async function doBulkUpdate(ids) {
+  const fields = {};
+  if (val('modalBuAssignee')) fields.assignee = val('modalBuAssignee');
+  if (val('modalBuPriority')) fields.priority = val('modalBuPriority');
+  if (val('modalBuFixVer')) fields.fix_version = val('modalBuFixVer');
+  if (val('modalBuSprint')) fields.sprint = val('modalBuSprint');
+  try {
+    await api('/jira-ops/bulk-update', { method: 'POST', body: { ticket_ids: ids, fields } });
+    toast('Updated ' + ids.length + ' tickets', 'success');
+    closeModal();
+    queryJiraTickets();
+  } catch (e) { toast('Failed: ' + e.message, 'error'); }
+}
+
+function bulkCommentDialog() {
+  const ids = getSelectedJiraIds();
+  if (!ids.length) { toast('Select tickets first', 'warn'); return; }
+  showModal('Bulk Comment', `
+    <p style="font-size:13px;margin-bottom:12px">${ids.length} ticket(s) selected</p>
+    <label>Comment</label><textarea id="modalBcComment" rows="4" placeholder="Type your comment..."></textarea>
+  `, [{ label: 'Post Comment', cls: 'btn-primary', action: () => doBulkComment(ids) }]);
+}
+
+async function doBulkComment(ids) {
+  const comment = val('modalBcComment');
+  if (!comment) { toast('Enter a comment', 'warn'); return; }
+  try {
+    for (const id of ids) { await api('/jira-ops/comment', { method: 'POST', body: { ticket_id: id, comment, author: document.getElementById('userNameInput').value || 'qa-agent' } }); }
+    toast('Commented on ' + ids.length + ' tickets', 'success');
+    closeModal();
+  } catch (e) { toast('Failed: ' + e.message, 'error'); }
+}
+
+async function runQAForSelected() {
+  const ids = getSelectedJiraIds();
+  if (!ids.length) { toast('Select tickets first', 'warn'); return; }
+  for (const id of ids) {
+    document.getElementById('qaJiraId').value = id;
+    switchTab('qaWorkflow');
+    await runQA();
+  }
+}
+
+// ── Test Management ─────────────────────────────────────────────────────────
+async function createTestPlan() {
+  const ids = val('tpTickets').split(',').map(s => s.trim()).filter(Boolean);
+  if (!val('tpName') || !ids.length) { toast('Plan name and ticket IDs required', 'warn'); return; }
+  try {
+    const res = await api('/jira-ops/test-plan', { method: 'POST', body: { name: val('tpName'), fix_version: val('tpFixVersion'), ticket_ids: ids, team_id: val('tpTeam') } });
+    toast('Test plan created: ' + res.plan_id, 'success');
+    loadTestPlans();
+  } catch (e) { toast('Failed: ' + e.message, 'error'); }
+}
+
+async function loadTestPlans() {
+  try {
+    const res = await api('/jira-ops/test-plans');
+    const container = document.getElementById('testPlansContainer');
+    if (!res.plans?.length) { container.innerHTML = '<p style="color:var(--muted);font-size:13px;text-align:center;padding:20px">No test plans yet</p>'; return; }
+    container.innerHTML = res.plans.map(p => `
+      <div style="padding:12px;border:1px solid var(--border);border-radius:8px;margin-bottom:8px">
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <div><strong>${p.name}</strong><br><span style="font-size:11px;color:var(--muted)">${p.plan_id} · ${p.fix_version} · ${p.team_id}</span></div>
+          <span class="badge badge-${p.status === 'Passed' ? 'green' : p.status === 'Failed' ? 'red' : 'blue'}">${p.status}</span>
+        </div>
+        <div style="font-size:12px;margin-top:4px;color:var(--muted)">Sets: ${p.sets?.length || 0} · Executions: ${p.executions?.length || 0}</div>
+      </div>
+    `).join('');
+  } catch (e) { toast('Failed to load plans', 'error'); }
+}
+
+async function createTestExecution() {
+  const ids = val('teTickets').split(',').map(s => s.trim()).filter(Boolean);
+  if (!val('teSelectPlan') || !ids.length) { toast('Plan ID and tickets required', 'warn'); return; }
+  try {
+    const res = await api('/jira-ops/test-execution', { method: 'POST', body: { plan_id: val('teSelectPlan'), set_id: val('teSelectSet') || null, ticket_ids: ids } });
+    toast('Execution created: ' + res.exec_id, 'success');
+  } catch (e) { toast('Failed: ' + e.message, 'error'); }
+}
+
+async function markTestResult() {
+  try {
+    await api('/jira-ops/mark-result', { method: 'POST', body: { exec_id: val('mrExecId'), ticket_id: val('mrTicketId'), result: val('mrResult'), comment: val('mrComment') || null } });
+    toast('Result marked!', 'success');
+  } catch (e) { toast('Failed: ' + e.message, 'error'); }
+}
+
+// ── Test Data / Upstream ────────────────────────────────────────────────────
+async function loadUpstreamSystems() {
+  try {
+    const res = await api('/upstream/systems');
+    document.getElementById('upstreamSystemsList').innerHTML = (res.systems || []).map(s => `
+      <div style="padding:10px;border:1px solid var(--border);border-radius:8px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center">
+        <div><strong>${s.name}</strong><br><span style="font-size:11px;color:var(--muted)">${s.description || s.system_id}</span></div>
+        <span class="badge badge-${s.stub_mode ? 'yellow' : 'green'}">${s.stub_mode ? 'stub' : 'live'}</span>
+      </div>
+    `).join('');
+  } catch (e) { console.warn('Failed to load upstream systems'); }
+}
+
+async function manageTestData() {
+  const action = val('tdAction');
+  let paramsObj = {};
+  try { paramsObj = JSON.parse(val('tdParams') || '{}'); } catch { toast('Invalid JSON', 'warn'); return; }
+  const body = { system_id: val('tdSystem'), data_type: val('tdDataType') || 'default', action, filters: action === 'discover' ? paramsObj : {}, spec: action === 'create' ? paramsObj : {} };
+  try {
+    const res = await api('/test-data', { method: 'POST', body });
+    document.getElementById('tdResponseArea').textContent = JSON.stringify(res, null, 2);
+    toast('Test data operation complete', 'success');
+  } catch (e) { toast('Failed: ' + e.message, 'error'); }
+}
+
+// ── History ─────────────────────────────────────────────────────────────────
+async function loadHistory() {
+  try {
+    const [hist, stats] = await Promise.all([
+      api('/history?limit=50&team_id=' + (val('histFilterTeam') || '')),
+      api('/history/stats'),
+    ]);
+    document.getElementById('hsTotalRuns').textContent = stats.total_runs;
+    document.getElementById('hsCompleted').textContent = stats.completed_runs;
+    document.getElementById('hsFailed').textContent = stats.failed_runs;
+    document.getElementById('hsAvgQuality').textContent = stats.avg_quality_score != null ? Math.round(stats.avg_quality_score) : '—';
+
+    const tbody = document.querySelector('#historyTable tbody');
+    tbody.innerHTML = (hist.runs || []).map(r => `
+      <tr>
+        <td style="font-size:11px">${new Date(r.triggered_at).toLocaleString()}</td>
+        <td><code>${r.jira_id || '—'}</code></td>
+        <td>${r.team_name || r.team_id || '—'}</td>
+        <td><span class="badge badge-blue">${r.task_type}</span></td>
+        <td>${r.triggered_by}</td>
+        <td>${r.quality_score != null ? r.quality_score : '—'}</td>
+        <td>${r.test_case_count != null ? r.test_case_count : '—'}</td>
+        <td><span class="badge badge-${r.status === 'completed' ? 'green' : r.status === 'failed' ? 'red' : 'yellow'}">${r.status}</span></td>
+        <td>${r.duration_secs != null ? r.duration_secs + 's' : '—'}</td>
+        <td style="max-width:200px">${renderOutputLinks(r.outputs)}</td>
+        <td><button class="btn btn-outline btn-sm" onclick="viewHistoryRun('${r.run_id}')"><i class="fas fa-eye"></i></button></td>
+      </tr>
+    `).join('');
+  } catch (e) { console.warn('History load failed', e); }
+}
+
+async function viewHistoryRun(runId) {
+  try {
+    const run = await api('/history/' + runId);
+    const outputLinks = run.outputs ? renderOutputLinks(run.outputs) : '—';
+    const detailHtml = `
+      <div class="grid-2" style="gap:8px;margin-bottom:16px;font-size:13px">
+        <div><strong>Run ID:</strong> <code style="font-size:11px">${run.run_id}</code></div>
+        <div><strong>Status:</strong> <span class="badge badge-${run.status === 'completed' ? 'green' : run.status === 'failed' ? 'red' : 'yellow'}">${run.status}</span></div>
+        <div><strong>Jira:</strong> ${run.jira_id || '—'}</div>
+        <div><strong>Team:</strong> ${run.team_name || run.team_id || '—'}</div>
+        <div><strong>Triggered by:</strong> ${run.triggered_by}</div>
+        <div><strong>Time:</strong> ${new Date(run.triggered_at).toLocaleString()}</div>
+        <div><strong>Duration:</strong> ${run.duration_secs != null ? run.duration_secs + 's' : '—'}</div>
+        <div><strong>Quality Score:</strong> ${run.quality_score != null ? run.quality_score : '—'}</div>
+        <div><strong>Test Cases:</strong> ${run.test_case_count != null ? run.test_case_count : '—'}</div>
+        <div><strong>BDD Scenarios:</strong> ${run.bdd_count != null ? run.bdd_count : '—'}</div>
+      </div>
+      <div style="margin-bottom:16px">
+        <strong style="font-size:13px">Downloads:</strong><br>
+        <div style="margin-top:6px;display:flex;flex-wrap:wrap;gap:4px">${outputLinks}</div>
+      </div>
+      ${run.steps_selected ? `<div style="margin-bottom:12px"><strong style="font-size:13px">Steps Selected:</strong><pre style="background:#f8fafc;padding:12px;border-radius:8px;font-size:11px;margin-top:4px">${JSON.stringify(run.steps_selected, null, 2)}</pre></div>` : ''}
+      ${run.error_message ? `<div><strong style="font-size:13px;color:var(--danger)">Error:</strong><pre style="background:#fef2f2;padding:12px;border-radius:8px;font-size:11px;margin-top:4px;color:#b91c1c">${run.error_message}</pre></div>` : ''}
+    `;
+    showModal('Run Details — ' + (run.jira_id || run.run_id), detailHtml, []);
+  } catch (e) { toast('Failed to load run', 'error'); }
+}
+
+// ── Team Config ─────────────────────────────────────────────────────────────
+async function loadTeamsList() {
+  try {
+    const res = await api('/teams');
+    const sel = document.getElementById('tcSelect');
+    (res.teams || []).forEach(t => {
+      const opt = document.createElement('option');
+      opt.value = t.id;
+      opt.textContent = t.name;
+      sel.appendChild(opt);
+    });
+  } catch (e) { console.warn('Teams load failed'); }
+}
+
+async function loadTeamConfigEditor() {
+  const id = val('tcSelect');
+  if (!id) return;
+  try {
+    const res = await api('/teams/' + id);
+    document.getElementById('tcEditor').value = res.content;
+  } catch (e) { toast('Failed to load config', 'error'); }
+}
+
+async function saveTeamConfig() {
+  const id = val('tcSelect');
+  if (!id) { toast('Select a team', 'warn'); return; }
+  try {
+    await api('/teams/' + id, { method: 'PUT', body: { content: document.getElementById('tcEditor').value } });
+    toast('Config saved!', 'success');
+  } catch (e) { toast('Save failed: ' + e.message, 'error'); }
+}
+
+async function loadCRFLTBoards() {
+  try {
+    const res = await api('/crflt/boards');
+    document.getElementById('crfltBoardsContainer').innerHTML = `
+      <p style="font-size:13px;margin-bottom:12px"><strong>${res.project_name}</strong> (${res.project})</p>
+      ${res.boards.map(b => `
+        <div style="padding:12px;border:1px solid var(--border);border-radius:8px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center">
+          <div><strong>${b.name}</strong><br><span style="font-size:11px;color:var(--muted)">${b.team_name} · ${b.sprint}</span></div>
+          <a href="${b.jira_url}" target="_blank" class="btn btn-outline btn-sm"><i class="fas fa-external-link-alt"></i> Open</a>
+        </div>
+      `).join('')}
+    `;
+  } catch (e) { console.warn('CRFLT boards load failed'); }
+}
+
+async function loadSampleTickets() {
+  try {
+    const res = await api('/crflt/sample-tickets');
+    const tbody = document.querySelector('#sampleTicketsTable tbody');
+    tbody.innerHTML = (res.tickets || []).map(t =>
+      `<tr><td><code>${t.id}</code></td><td>${t.summary}</td><td>${(t.components || []).join(', ') || '—'}</td><td><span class="badge badge-${statusColor(t.status)}">${t.status}</span></td><td>${t.type || '—'}</td></tr>`
+    ).join('');
+  } catch (e) { console.warn('Sample tickets load failed'); }
+}
+
+// ── Helpers ─────────────────────────────────────────────────────────────────
+function val(id) { const el = document.getElementById(id); return el ? el.value.trim() : ''; }
+function statusColor(s) { return s === 'Done' ? 'green' : s === 'In Progress' ? 'blue' : s === 'Open' ? 'gray' : 'yellow'; }
+
+// Convert backend file path (e.g. "outputs/reports/X.html") to API download URL
+function toDownloadUrl(filePath) {
+  if (!filePath) return null;
+  // Strip leading "outputs/" to get "reports/X.html" then prefix with API base
+  const rel = filePath.replace(/^outputs\//, '');
+  return API + '/outputs/' + rel;
+}
+
+// Build download link buttons from an outputs dict {report: path, testcases_csv: path, ...}
+function renderOutputLinks(outputs) {
+  if (!outputs || typeof outputs !== 'object') return '—';
+  const labels = { report: 'Report', testcases_csv: 'CSV ↓', testcases_json: 'JSON ↓', bdd_feature: 'BDD' };
+  const icons = { report: 'file-alt', testcases_csv: 'file-csv', testcases_json: 'file-code', bdd_feature: 'file' };
+  const links = Object.entries(outputs)
+    .filter(([, v]) => v)
+    .map(([k, v]) => `<a href="${toDownloadUrl(v)}" target="_blank" rel="noopener" class="btn btn-outline btn-sm" style="padding:2px 8px;font-size:11px;margin:1px"><i class="fas fa-${icons[k] || 'download'}"></i> ${labels[k] || k}</a>`);
+  return links.length ? links.join('') : '—';
+}
+
+// ── Modal ───────────────────────────────────────────────────────────────────
+function showModal(title, bodyHtml, buttons = []) {
+  document.getElementById('modalTitle').textContent = title;
+  document.getElementById('modalBody').innerHTML = bodyHtml;
+  document.getElementById('modalFooter').innerHTML = buttons.map(b =>
+    `<button class="btn ${b.cls}" onclick="(${b.action})()">${b.label}</button>`
+  ).join('') + '<button class="btn btn-outline" onclick="closeModal()">Cancel</button>';
+  document.getElementById('modal').style.display = 'flex';
+}
+
+function closeModal() { document.getElementById('modal').style.display = 'none'; }
+</script>
+</body>
+</html>

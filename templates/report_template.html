@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>QA Report &mdash; {{ result.jira_id }}</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: #f0f4f8;
+      color: #1a202c;
+      font-size: 0.9rem;
+    }
+
+    /* ── Header ── */
+    .header {
+      background: linear-gradient(135deg, #1a365d 0%, #2b6cb0 100%);
+      color: #fff;
+      padding: 40px 48px;
+    }
+    .header-top { display: flex; align-items: flex-start; justify-content: space-between; flex-wrap: wrap; gap: 16px; }
+    .header h1  { font-size: 1.8rem; font-weight: 700; letter-spacing: -.02em; }
+    .header-meta { font-size: 0.82rem; opacity: .75; margin-top: 8px; }
+    .header-meta span { margin-right: 16px; }
+    .status-badge {
+      padding: 5px 16px;
+      border-radius: 20px;
+      font-size: 0.8rem;
+      font-weight: 700;
+      background: rgba(255,255,255,.15);
+      border: 1px solid rgba(255,255,255,.35);
+      white-space: nowrap;
+    }
+
+    /* ── Layout ── */
+    .container { max-width: 1100px; margin: 0 auto; padding: 36px 24px; }
+
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px; }
+    @media (max-width: 700px) { .grid-2 { grid-template-columns: 1fr; } }
+
+    /* ── Card ── */
+    .card {
+      background: #fff;
+      border-radius: 14px;
+      padding: 24px 28px;
+      box-shadow: 0 1px 6px rgba(0,0,0,.07);
+      margin-bottom: 20px;
+    }
+    .card-title {
+      font-size: 0.78rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .07em;
+      color: #718096;
+      margin-bottom: 18px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .card-full { grid-column: 1 / -1; }
+
+    /* ── Score ── */
+    .score-wrap { text-align: center; padding: 8px 0 4px; }
+    .score-num {
+      font-size: 4.5rem;
+      font-weight: 800;
+      line-height: 1;
+    }
+    .score-denom { font-size: 1rem; color: #a0aec0; }
+    .grade-chip {
+      display: inline-block;
+      padding: 4px 18px;
+      border-radius: 20px;
+      font-size: 1.3rem;
+      font-weight: 800;
+      margin: 10px 0 6px;
+    }
+    .score-bar { background: #e2e8f0; border-radius: 999px; height: 10px; margin: 10px 0 0; overflow: hidden; }
+    .score-bar-fill { height: 100%; border-radius: 999px; }
+
+    .green  { color: #276749; }
+    .yellow { color: #744210; }
+    .red    { color: #742a2a; }
+    .chip-green  { background: #c6f6d5; color: #276749; }
+    .chip-yellow { background: #fefcbf; color: #744210; }
+    .chip-red    { background: #fed7d7; color: #742a2a; }
+    .bar-green   { background: #48bb78; }
+    .bar-yellow  { background: #ed8936; }
+    .bar-red     { background: #fc8181; }
+
+    /* ── Ticket Info ── */
+    .info-row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #f7fafc; }
+    .info-row:last-child { border-bottom: none; }
+    .info-key   { color: #718096; font-weight: 500; }
+    .info-val   { font-weight: 600; text-align: right; max-width: 60%; }
+    .tag-list   { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px; }
+    .tag        { background: #ebf4ff; color: #2b6cb0; border-radius: 12px; padding: 2px 10px; font-size: 0.75rem; font-weight: 600; }
+    .tag-comp   { background: #faf5ff; color: #6b46c1; }
+
+    /* ── Issues ── */
+    .issue {
+      display: flex;
+      align-items: flex-start;
+      gap: 14px;
+      padding: 14px 0;
+      border-bottom: 1px solid #f7fafc;
+    }
+    .issue:last-child { border-bottom: none; }
+    .sev-badge {
+      padding: 3px 10px;
+      border-radius: 12px;
+      font-size: 0.7rem;
+      font-weight: 700;
+      white-space: nowrap;
+      text-transform: uppercase;
+    }
+    .sev-critical { background: #fed7d7; color: #742a2a; }
+    .sev-warning  { background: #fefcbf; color: #744210; }
+    .sev-info     { background: #bee3f8; color: #1a365d; }
+    .issue-field  { font-weight: 700; margin-bottom: 3px; }
+    .issue-msg    { color: #4a5568; line-height: 1.5; }
+    .issue-rec    { color: #276749; font-size: 0.82rem; margin-top: 4px; }
+    .issue-rec::before { content: "→ "; }
+
+    .strength { display: flex; align-items: center; gap: 8px; padding: 6px 0; }
+    .strength::before { content: "✓"; color: #276749; font-weight: 700; font-size: 1rem; }
+
+    /* ── Alignment ── */
+    .alignment-summary { font-size: 0.9rem; color: #4a5568; line-height: 1.6; margin-bottom: 16px; }
+    .gap-list li { padding: 6px 0; border-bottom: 1px solid #f7fafc; color: #4a5568; }
+    .gap-list li::marker { color: #fc8181; }
+    .gap-list li:last-child { border-bottom: none; }
+
+    /* ── Commits ── */
+    .commit { padding: 12px 0; border-bottom: 1px solid #f7fafc; }
+    .commit:last-child { border-bottom: none; }
+    .commit-sha  { font-family: monospace; font-size: 0.78rem; color: #a0aec0; }
+    .commit-msg  { font-weight: 600; margin: 4px 0 2px; line-height: 1.4; }
+    .commit-meta { font-size: 0.8rem; color: #718096; }
+    .commit-diff { font-size: 0.8rem; color: #4a5568; margin-top: 4px; font-style: italic; }
+
+    /* ── Test Cases Table ── */
+    .table-wrap { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; min-width: 700px; }
+    th {
+      background: #f7fafc;
+      text-align: left;
+      padding: 10px 12px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .05em;
+      color: #4a5568;
+      border-bottom: 2px solid #e2e8f0;
+    }
+    td { padding: 10px 12px; border-bottom: 1px solid #f7fafc; vertical-align: top; line-height: 1.5; }
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: #f7fafc; }
+    .type-happy     { background: #c6f6d5; color: #276749; }
+    .type-negative  { background: #fed7d7; color: #742a2a; }
+    .type-edge      { background: #fefcbf; color: #744210; }
+    .type-regression{ background: #e9d8fd; color: #44337a; }
+    .prio-high   { color: #c53030; font-weight: 700; }
+    .prio-medium { color: #744210; }
+    .prio-low    { color: #276749; }
+    .tc-id       { font-family: monospace; font-weight: 700; font-size: 0.8rem; }
+    .tc-steps    { list-style: decimal inside; color: #4a5568; font-size: 0.82rem; }
+    .tc-steps li { margin-bottom: 2px; }
+    .tc-tags span { display: inline-block; background: #ebf4ff; color: #2b6cb0; border-radius: 10px; padding: 1px 8px; font-size: 0.7rem; margin: 2px 2px 0 0; }
+
+    /* ── BDD ── */
+    .bdd-block {
+      background: #1a202c;
+      color: #e2e8f0;
+      border-radius: 10px;
+      padding: 18px 20px;
+      margin-bottom: 14px;
+      font-family: "Fira Mono", "Courier New", monospace;
+      font-size: 0.82rem;
+      line-height: 1.8;
+    }
+    .bdd-tag      { color: #fc8181; font-size: 0.75rem; }
+    .bdd-scenario { color: #f6ad55; font-weight: 700; }
+    .bdd-given    { color: #68d391; }
+    .bdd-when     { color: #76e4f7; }
+    .bdd-then     { color: #d6bcfa; }
+    .bdd-kw       { font-weight: 700; }
+
+    /* ── Stats bar ── */
+    .stats-row {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+      gap: 14px;
+      margin-bottom: 20px;
+    }
+    .stat-card {
+      background: #fff;
+      border-radius: 12px;
+      padding: 16px 12px;
+      text-align: center;
+      box-shadow: 0 1px 4px rgba(0,0,0,.06);
+    }
+    .stat-val { font-size: 2rem; font-weight: 800; color: #2b6cb0; }
+    .stat-lbl { font-size: 0.75rem; color: #718096; margin-top: 3px; }
+
+    /* ── Footer ── */
+    .footer {
+      text-align: center;
+      padding: 28px;
+      color: #a0aec0;
+      font-size: 0.8rem;
+      border-top: 1px solid #e2e8f0;
+      background: #fff;
+      margin-top: 16px;
+    }
+
+    @media print {
+      body { background: #fff; }
+      .card { box-shadow: none; border: 1px solid #e2e8f0; }
+      .bdd-block { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ── Header ── -->
+<div class="header">
+  <div class="header-top">
+    <div>
+      <h1>🔍 QA Analysis Report</h1>
+      <div class="header-meta">
+        <span><strong>Ticket:</strong> {{ result.jira_id }}</span>
+        {% if result.release %}<span><strong>Release:</strong> {{ result.release }}</span>{% endif %}
+        <span><strong>Generated:</strong> {{ generated_at }}</span>
+        {% if result.duration_seconds %}<span><strong>Duration:</strong> {{ result.duration_seconds }}s</span>{% endif %}
+      </div>
+    </div>
+    <div class="status-badge">
+      {{ "✅ Completed" if result.status == "completed" else "❌ Failed" }}
+    </div>
+  </div>
+</div>
+
+<div class="container">
+
+  <!-- ── Stats Overview ── -->
+  <div class="stats-row">
+    <div class="stat-card">
+      <div class="stat-val">{{ result.validation.quality_score if result.validation else "—" }}</div>
+      <div class="stat-lbl">Quality Score</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-val">{{ result.alignment.score if result.alignment else "—" }}</div>
+      <div class="stat-lbl">Alignment Score</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-val">{{ result.test_cases | length }}</div>
+      <div class="stat-lbl">Test Cases</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-val">{{ result.bdd_scenarios | length }}</div>
+      <div class="stat-lbl">BDD Scenarios</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-val">{{ result.commits | length }}</div>
+      <div class="stat-lbl">Commits</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-val">{{ result.validation.issues | length if result.validation else "—" }}</div>
+      <div class="stat-lbl">Issues Found</div>
+    </div>
+  </div>
+
+  <!-- ── Quality Score + Ticket Info ── -->
+  {% if result.validation or result.ticket %}
+  <div class="grid-2">
+
+    {% if result.validation %}
+    {% set score = result.validation.quality_score %}
+    {% set color = "green" if score >= 70 else ("yellow" if score >= 40 else "red") %}
+    <div class="card">
+      <div class="card-title">📊 Ticket Quality Score</div>
+      <div class="score-wrap">
+        <div class="score-num {{ color }}">{{ score }}<span class="score-denom">/100</span></div>
+        <div class="grade-chip chip-{{ color }}">Grade {{ result.validation.grade }}</div>
+        <div class="score-bar">
+          <div class="score-bar-fill bar-{{ color }}" style="width: {{ score }}%"></div>
+        </div>
+      </div>
+      {% if result.validation.summary %}
+      <p style="margin-top:18px; color:#4a5568; line-height:1.6">{{ result.validation.summary }}</p>
+      {% endif %}
+
+      {% if result.validation.strengths %}
+      <div style="margin-top:16px">
+        <div style="font-size:.78rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#718096;margin-bottom:8px">Strengths</div>
+        {% for s in result.validation.strengths %}
+        <div class="strength">{{ s }}</div>
+        {% endfor %}
+      </div>
+      {% endif %}
+    </div>
+    {% endif %}
+
+    {% if result.ticket %}
+    <div class="card">
+      <div class="card-title">🎫 Ticket Details</div>
+      <div class="info-row"><span class="info-key">ID</span><span class="info-val">{{ result.ticket.id }}</span></div>
+      <div class="info-row"><span class="info-key">Status</span><span class="info-val">{{ result.ticket.status or "—" }}</span></div>
+      <div class="info-row"><span class="info-key">Priority</span><span class="info-val">{{ result.ticket.priority or "—" }}</span></div>
+      <div class="info-row"><span class="info-key">Assignee</span><span class="info-val">{{ result.ticket.assignee or "—" }}</span></div>
+      <div class="info-row"><span class="info-key">Story Points</span><span class="info-val">{{ result.ticket.story_points or "—" }}</span></div>
+      {% if result.ticket.labels %}
+      <div style="margin-top:12px">
+        <div class="info-key" style="margin-bottom:6px">Labels</div>
+        <div class="tag-list">{% for l in result.ticket.labels %}<span class="tag">{{ l }}</span>{% endfor %}</div>
+      </div>
+      {% endif %}
+      {% if result.ticket.components %}
+      <div style="margin-top:10px">
+        <div class="info-key" style="margin-bottom:6px">Components</div>
+        <div class="tag-list">{% for c in result.ticket.components %}<span class="tag tag-comp">{{ c }}</span>{% endfor %}</div>
+      </div>
+      {% endif %}
+    </div>
+    {% endif %}
+
+  </div>
+  {% endif %}
+
+  <!-- ── Ticket Summary ── -->
+  {% if result.ticket and result.ticket.summary %}
+  <div class="card">
+    <div class="card-title">📝 Summary</div>
+    <p style="font-size:1rem;font-weight:600;line-height:1.5">{{ result.ticket.summary }}</p>
+    {% if result.ticket.acceptance_criteria %}
+    <div style="margin-top:16px">
+      <div style="font-size:.78rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#718096;margin-bottom:8px">Acceptance Criteria</div>
+      <pre style="white-space:pre-wrap;font-family:inherit;color:#4a5568;line-height:1.7;font-size:.875rem">{{ result.ticket.acceptance_criteria }}</pre>
+    </div>
+    {% endif %}
+  </div>
+  {% endif %}
+
+  <!-- ── Validation Issues ── -->
+  {% if result.validation and result.validation.issues %}
+  <div class="card">
+    <div class="card-title">⚠️ Validation Issues ({{ result.validation.issues | length }})</div>
+    {% for issue in result.validation.issues %}
+    <div class="issue">
+      <span class="sev-badge sev-{{ issue.severity }}">{{ issue.severity }}</span>
+      <div>
+        <div class="issue-field">{{ issue.field }}</div>
+        <div class="issue-msg">{{ issue.message }}</div>
+        <div class="issue-rec">{{ issue.recommendation }}</div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  <!-- ── Code Alignment ── -->
+  {% if result.alignment %}
+  {% set ascore = result.alignment.score %}
+  {% set acolor = "green" if ascore >= 70 else ("yellow" if ascore >= 40 else "red") %}
+  <div class="card">
+    <div class="card-title">🔗 Code-Requirement Alignment</div>
+    <div style="display:flex;align-items:center;gap:20px;flex-wrap:wrap;margin-bottom:16px">
+      <div>
+        <span style="font-size:2.2rem;font-weight:800" class="{{ acolor }}">{{ ascore }}</span>
+        <span style="color:#a0aec0">/100</span>
+        &nbsp;<span class="grade-chip chip-{{ acolor }}" style="font-size:.85rem;padding:3px 12px">{{ "Aligned" if result.alignment.aligned else "Gaps Found" }}</span>
+      </div>
+    </div>
+    <div class="score-bar" style="margin-bottom:18px">
+      <div class="score-bar-fill bar-{{ acolor }}" style="width:{{ ascore }}%"></div>
+    </div>
+    {% if result.alignment.summary %}
+    <p class="alignment-summary">{{ result.alignment.summary }}</p>
+    {% endif %}
+
+    {% if result.alignment.coverage_gaps %}
+    <div style="margin-bottom:16px">
+      <div style="font-size:.78rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#718096;margin-bottom:8px">Coverage Gaps</div>
+      <ul class="gap-list" style="padding-left:20px">
+        {% for gap in result.alignment.coverage_gaps %}
+        <li>{{ gap }}</li>
+        {% endfor %}
+      </ul>
+    </div>
+    {% endif %}
+
+    {% if result.alignment.over_implementation %}
+    <div>
+      <div style="font-size:.78rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#718096;margin-bottom:8px">Over-implementation</div>
+      <ul class="gap-list" style="padding-left:20px">
+        {% for item in result.alignment.over_implementation %}
+        <li>{{ item }}</li>
+        {% endfor %}
+      </ul>
+    </div>
+    {% endif %}
+  </div>
+  {% endif %}
+
+  <!-- ── GitHub Commits ── -->
+  {% if result.commits %}
+  <div class="card">
+    <div class="card-title">📦 GitHub Commits ({{ result.commits | length }})</div>
+    {% for c in result.commits %}
+    <div class="commit">
+      <div class="commit-sha">{{ c.sha[:12] }}</div>
+      <div class="commit-msg">{{ c.message.split('\n')[0] }}</div>
+      <div class="commit-meta">{{ c.author }} &nbsp;·&nbsp; {{ c.date[:10] }}</div>
+      {% if c.diff_summary %}
+      <div class="commit-diff">{{ c.diff_summary }}</div>
+      {% endif %}
+      {% if c.files_changed %}
+      <div class="tag-list" style="margin-top:6px">
+        {% for f in c.files_changed[:5] %}<span class="tag" style="font-family:monospace;font-size:.7rem">{{ f }}</span>{% endfor %}
+        {% if c.files_changed | length > 5 %}<span class="tag">+{{ c.files_changed | length - 5 }} more</span>{% endif %}
+      </div>
+      {% endif %}
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  <!-- ── Test Cases ── -->
+  {% if result.test_cases %}
+  <div class="card">
+    <div class="card-title">🧪 Test Cases ({{ result.test_cases | length }})</div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Type</th>
+            <th>Priority</th>
+            <th>Scenario</th>
+            <th>Steps</th>
+            <th>Expected Result</th>
+            <th>Tags</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for tc in result.test_cases %}
+          {% set ttype = tc.test_type.value if tc.test_type else tc.test_type %}
+          {% set type_cls = "type-happy" if "Happy" in ttype else ("type-negative" if "Negative" in ttype else ("type-edge" if "Edge" in ttype else "type-regression")) %}
+          {% set prio_cls = "prio-high" if tc.priority == "High" else ("prio-medium" if tc.priority == "Medium" else "prio-low") %}
+          <tr>
+            <td class="tc-id">{{ tc.test_id }}</td>
+            <td><span class="sev-badge {{ type_cls }}" style="font-size:.7rem">{{ ttype }}</span></td>
+            <td class="{{ prio_cls }}">{{ tc.priority }}</td>
+            <td style="font-weight:600">{{ tc.scenario }}</td>
+            <td>
+              <ol class="tc-steps">
+                {% for step in tc.steps %}<li>{{ step }}</li>{% endfor %}
+              </ol>
+            </td>
+            <td>{{ tc.expected_result }}</td>
+            <td class="tc-tags">{% for tag in tc.tags %}<span>{{ tag }}</span>{% endfor %}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- ── BDD Scenarios ── -->
+  {% if result.bdd_scenarios %}
+  <div class="card">
+    <div class="card-title">🥒 BDD Gherkin Scenarios ({{ result.bdd_scenarios | length }})</div>
+    {% for s in result.bdd_scenarios %}
+    <div class="bdd-block">
+      {% if s.tags %}<div class="bdd-tag">{{ s.tags | join(' ') }}</div>{% endif %}
+      <div class="bdd-scenario"><span class="bdd-kw">Scenario:</span> {{ s.scenario_name }}</div>
+      {% for step in s.given %}
+      <div class="bdd-given">&nbsp;&nbsp;<span class="bdd-kw">Given</span> {{ step }}</div>
+      {% endfor %}
+      {% for step in s.when %}
+      <div class="bdd-when">&nbsp;&nbsp;<span class="bdd-kw">{{ "When" if loop.first else "And  " }}</span> {{ step }}</div>
+      {% endfor %}
+      {% for step in s.then %}
+      <div class="bdd-then">&nbsp;&nbsp;<span class="bdd-kw">{{ "Then" if loop.first else "And  " }}</span> {{ step }}</div>
+      {% endfor %}
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  <!-- ── Error (if failed) ── -->
+  {% if result.error %}
+  <div class="card" style="border-left:4px solid #fc8181">
+    <div class="card-title">❌ Workflow Error</div>
+    <pre style="white-space:pre-wrap;color:#c53030;font-size:.85rem">{{ result.error }}</pre>
+  </div>
+  {% endif %}
+
+</div><!-- /container -->
+
+<div class="footer">
+  Generated by <strong>QA Agent Platform</strong> &nbsp;|&nbsp; {{ generated_at }}
+</div>
+
+</body>
+</html>
