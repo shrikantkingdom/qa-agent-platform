@@ -29,7 +29,8 @@ def _parse_bool(value: str) -> bool:
     return str(value).lower() in ("true", "1", "yes")
 
 
-def _post(api_base: str, path: str, payload: dict) -> dict:
+def _post(api_base: str, path: str, payload: dict, *, fatal: bool = True) -> dict:
+    """POST to the API.  If fatal=False, returns {} on error instead of exiting."""
     url = f"{api_base.rstrip('/')}/{path.lstrip('/')}"
     data = json.dumps(payload).encode()
     req = urllib.request.Request(
@@ -44,10 +45,14 @@ def _post(api_base: str, path: str, payload: dict) -> dict:
     except urllib.error.HTTPError as exc:
         body = exc.read().decode("utf-8", errors="replace")
         print(f"[trigger_qa] HTTP {exc.code} from {url}:\n{body}", file=sys.stderr)
-        sys.exit(1)
+        if fatal:
+            sys.exit(1)
+        return {}
     except urllib.error.URLError as exc:
         print(f"[trigger_qa] Cannot reach {url}: {exc.reason}", file=sys.stderr)
-        sys.exit(1)
+        if fatal:
+            sys.exit(1)
+        return {}
 
 
 def _get(api_base: str, path: str) -> dict:
@@ -105,16 +110,28 @@ def main() -> None:
     print("[trigger_qa] Calling POST /run-qa ...")
     result = _post(args.api_base, "/run-qa", payload)
 
-    # ── Print key metrics ───────────────────────────────────────────────────
-    grade   = result.get("grade",          "N/A")
-    overall = result.get("overall_score",  0)
-    run_id  = result.get("run_id",         "unknown")
+    # ── Extract nested result fields ────────────────────────────────────────
+    # QAResponse shape: {success, message, run_id, data: QAWorkflowResult}
+    # QAWorkflowResult: {validation: {grade, quality_score, issues, summary}, ...}
+    run_id     = result.get("run_id", "unknown")
+    qa_data    = result.get("data") or {}
+    validation = qa_data.get("validation") or {}
+    alignment  = qa_data.get("alignment") or {}
+    grade      = validation.get("grade", "N/A")
+    overall    = validation.get("quality_score", 0)
+
+    outputs = {
+        "report":          qa_data.get("report_path"),
+        "testcases_csv":   qa_data.get("testcases_csv_path"),
+        "testcases_json":  qa_data.get("testcases_json_path"),
+        "bdd_feature":     qa_data.get("bdd_feature_path"),
+    }
 
     print(f"[trigger_qa] Run ID  : {run_id}")
     print(f"[trigger_qa] Grade   : {grade}")
     print(f"[trigger_qa] Score   : {overall}")
 
-    issues  = result.get("issues_found",  [])
+    issues = validation.get("issues", [])
     print(f"[trigger_qa] Issues  : {len(issues)}")
     for iss in issues[:5]:
         severity = iss.get("severity", "")
@@ -125,16 +142,22 @@ def main() -> None:
 
     # ── Save summary side-car ───────────────────────────────────────────────
     summary_path = Path(f"qa_summary_{args.jira_id.replace('/', '_')}.json")
+    scores = {}
+    if validation:
+        scores["ticket_quality"] = overall
+    if alignment:
+        scores["code_alignment"] = alignment.get("score", 0)
+
     summary = {
-        "run_id":       run_id,
-        "jira_id":      args.jira_id,
-        "team_id":      args.team_id,
-        "triggered_by": args.triggered_by,
-        "grade":        grade,
+        "run_id":        run_id,
+        "jira_id":       args.jira_id,
+        "team_id":       args.team_id,
+        "triggered_by":  args.triggered_by,
+        "grade":         grade,
         "overall_score": overall,
-        "scores": result.get("scores", {}),
-        "issues_count": len(issues),
-        "outputs":      result.get("outputs", {}),
+        "scores":        scores,
+        "issues_count":  len(issues),
+        "outputs":       outputs,
     }
     summary_path.write_text(json.dumps(summary, indent=2))
     print(f"[trigger_qa] Summary saved → {summary_path}")
@@ -142,17 +165,34 @@ def main() -> None:
     # ── Optional: upload report to Jira ────────────────────────────────────
     if _parse_bool(args.upload_jira):
         print("[trigger_qa] Uploading report to Jira ticket ...")
-        up_result = _post(args.api_base, f"/jira/{args.jira_id}/upload-report",
-                          {"run_id": run_id})
-        print(f"[trigger_qa] Jira upload: {up_result.get('status', up_result)}")
+        # Build a JiraUploadRequest-compatible payload from run results
+        issue_msgs = [i.get("message", str(i)) for i in issues]
+        report_fname = Path(outputs["report"]).name if outputs.get("report") else None
+        upload_payload = {
+            "jira_id":        args.jira_id,
+            "edited_summary": validation.get("summary", "QA analysis completed via GitHub Actions."),
+            "edited_issues":  issue_msgs,
+            "quality_score":  overall,
+            "grade":          grade if grade != "N/A" else "C",
+            "attach_report":  bool(report_fname),
+            "report_filename": report_fname,
+        }
+        up_result = _post(args.api_base, "/upload-to-jira", upload_payload, fatal=False)
+        if up_result:
+            print(f"[trigger_qa] Jira upload: {up_result.get('status', 'ok')}")
+        else:
+            print("[trigger_qa] WARNING: Jira upload failed (non-fatal, continuing)")
 
     # ── Optional: create PR ─────────────────────────────────────────────────
     if _parse_bool(args.create_pr):
         print("[trigger_qa] Creating automation PR ...")
         pr_result = _post(args.api_base, "/github/create-pr",
-                          {"run_id": run_id, "jira_id": args.jira_id})
-        pr_url = pr_result.get("pr_url", "")
-        print(f"[trigger_qa] PR created: {pr_url}")
+                          {"run_id": run_id, "jira_id": args.jira_id}, fatal=False)
+        pr_url = pr_result.get("pr_url", "") if pr_result else ""
+        if pr_url:
+            print(f"[trigger_qa] PR created: {pr_url}")
+        else:
+            print("[trigger_qa] WARNING: PR creation failed or returned no URL (non-fatal)")
 
     # ── Exit code: non-zero if grade is F ─────────────────────────────────
     if str(grade).upper() == "F":
