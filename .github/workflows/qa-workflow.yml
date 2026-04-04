@@ -76,7 +76,7 @@ on:
         description: "Upload QA summary + report to Jira ticket"
         required: false
         type: boolean
-        default: false
+        default: true
 
       create_pr:
         description: "Push generated tests & open a PR in automation repo"

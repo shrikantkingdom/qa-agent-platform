@@ -103,6 +103,7 @@ def main() -> None:
             "step_definitions":  _parse_bool(args.step_defs),
             "step_def_style":    args.step_style,
         },
+        "post_to_jira": _parse_bool(args.upload_jira),
         "custom_prompt": args.custom_prompt or None,
     }
 
@@ -163,25 +164,10 @@ def main() -> None:
     print(f"[trigger_qa] Summary saved → {summary_path}")
 
     # ── Optional: upload report to Jira ────────────────────────────────────
+    # Note: upload is handled inline via post_to_jira=True in the run-qa payload.
+    # The separate /upload-to-jira endpoint is reserved for manual UI review flow.
     if _parse_bool(args.upload_jira):
-        print("[trigger_qa] Uploading report to Jira ticket ...")
-        # Build a JiraUploadRequest-compatible payload from run results
-        issue_msgs = [i.get("message", str(i)) for i in issues]
-        report_fname = Path(outputs["report"]).name if outputs.get("report") else None
-        upload_payload = {
-            "jira_id":        args.jira_id,
-            "edited_summary": validation.get("summary", "QA analysis completed via GitHub Actions."),
-            "edited_issues":  issue_msgs,
-            "quality_score":  overall,
-            "grade":          grade if grade != "N/A" else "C",
-            "attach_report":  bool(report_fname),
-            "report_filename": report_fname,
-        }
-        up_result = _post(args.api_base, "/upload-to-jira", upload_payload, fatal=False)
-        if up_result:
-            print(f"[trigger_qa] Jira upload: {up_result.get('status', 'ok')}")
-        else:
-            print("[trigger_qa] WARNING: Jira upload failed (non-fatal, continuing)")
+        print("[trigger_qa] Jira upload was requested — handled inline during run-qa.")
 
     # ── Optional: create PR ─────────────────────────────────────────────────
     if _parse_bool(args.create_pr):
