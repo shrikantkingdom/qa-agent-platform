@@ -16,7 +16,7 @@ archived in S3 and surfaced via the React portal.
 
 | Resource | URL |
 |----------|-----|
-| **Jira Board** | https://shrikantpatil.atlassian.net/jira/software/projects/SCRUM/boards/34 |
+| **Jira Board** | https://shrikantpatil.atlassian.net/jira/software/c/projects/CRFLT/boards/37 |
 | **Confluence** | https://shrikantpatil.atlassian.net/wiki/spaces/STMT |
 | **Backend Services Repo** | https://github.com/shrikantkingdom/statements |
 | **Database / Stored Procedures Repo** | https://github.com/shrikantkingdom/statements-db |
@@ -27,10 +27,10 @@ archived in S3 and surfaced via the React portal.
 
 ## Jira Configuration
 
-- **Project Key**: `SCRUM` (Client Reporting)
+- **Project Key**: `CRFLT` (Client Reporting)
 - **Component**: `CR-statements`
-- **Board URL**: https://shrikantpatil.atlassian.net/jira/software/projects/SCRUM/boards/34
-- **Board Filter JQL**: `project = SCRUM AND component = "CR-statements" ORDER BY created DESC`
+- **Board URL**: https://shrikantpatil.atlassian.net/jira/software/c/projects/CRFLT/boards/37
+- **Board Filter JQL**: `project = CRFLT AND component = "CR-statements" ORDER BY created DESC`
 
 ### Custom Fields
 

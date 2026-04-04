@@ -12,9 +12,9 @@ artefacts (HTML report, CSV, `.feature` file, pytest-bdd step definitions), and 
 structured quality report for human review before any write-back to Jira or the automation repo.
 
 **Three teams currently served:**
-- Statements (`config/teams/statements.md` — SCRUM project)
-- Confirms (`config/teams/confirms.md` — CONF project)
-- Letters / Client Correspondence (`config/teams/letters.md` — CORCX project)
+- Statements (`config/teams/statements.md` — CRFLT project)
+- Confirms (`config/teams/confirms.md` — CRFLT project)
+- Letters / Client Correspondence (`config/teams/letters.md` — CRFLT project)
 
 ---
 
@@ -356,7 +356,7 @@ def when_login(login_page, username, password):
 Generated step definitions:
 - Saved locally: `outputs/bdd/{jira_id}_steps.py`
 - Pushed to repo: `tests/step_defs/{team}/{feature}_steps.py`
-  (team directory is inferred from the Jira project key: SCRUM → statements, CONF → confirms, CORCX → correspondence)
+  (team is resolved from the Jira component on the ticket: CR-statements → statements, CR-confirms → confirms, CR-letters → letters — all under CRFLT project)
 
 ---
 
@@ -497,8 +497,8 @@ target team directory. Extract defined step texts using regex. Compare against g
 Flag duplicates in the UI before push, suggesting which functions to remove or merge.
 
 ### 12.6 Multi-Repo Ticket Mapping
-Some Jira projects (e.g., CORCX) span multiple GitHub repos (service repo, UI repo, template repo).
-Add a `repo_scope` field to team config files specifying which repos to check for each workflow step.
+All three teams share the CRFLT project and are differentiated by component (CR-statements, CR-confirms, CR-letters).
+Each team can span multiple GitHub repos; add a `repo_scope` field to team config files specifying which repos to check for each workflow step.
 The alignment checker in Step 4 would then analyse commits across all three repos against the same
 acceptance criteria.
 
@@ -610,7 +610,7 @@ has no execution path.
 A: Three test levels. (1) **Unit tests** (`tests/unit/`): each service method tested in isolation
 with mocked httpx responses (Jira/GitHub) and mocked `call_structured()` returning fixture JSON.
 (2) **Integration tests** (`tests/integration/`): full 9-step workflow against real Jira + GitHub
-using test ticket SCRUM-999, LLM calls to GitHub Models. Runs in CI on a dedicated test token.
+using test ticket CRFLT-1, LLM calls to GitHub Models. Runs in CI on a dedicated test token.
 (3) **Contract tests**: Pydantic schema validation tests that confirm the LLM mock responses
 match the expected `QAResponse` shape — catching schema drift before it reaches production.
 

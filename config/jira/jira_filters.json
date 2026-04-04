@@ -1,10 +1,10 @@
 {
-  "_comment": "JQL filters for SCRUM (Client Reporting) Jira project. All teams share one project and are separated by component.",
+  "_comment": "JQL filters for CRFLT (Client Reporting) Jira project. All teams share one project and are separated by component.",
 
   "project": {
-    "key": "SCRUM",
+    "key": "CRFLT",
     "name": "Client Reporting",
-    "jira_url": "https://shrikantpatil.atlassian.net/jira/software/projects/SCRUM"
+    "jira_url": "https://shrikantpatil.atlassian.net/jira/software/projects/CRFLT"
   },
 
   "components": [
@@ -16,85 +16,85 @@
   "team_board_filters": {
     "statements": {
       "name": "Statements Board",
-      "board_id": 34,
+      "board_id": 37,
       "filter_id": 10033,
       "component": "CR-statements",
-      "jql": "project = SCRUM AND component = \"CR-statements\" ORDER BY created DESC",
-      "board_url": "https://shrikantpatil.atlassian.net/jira/software/projects/SCRUM/boards/34",
+      "jql": "project = CRFLT AND component = \"CR-statements\" ORDER BY created DESC",
+      "board_url": "https://shrikantpatil.atlassian.net/jira/software/projects/CRFLT/boards/37",
       "description": "All issues owned by the Statements team"
     },
     "confirms": {
       "name": "Confirms Board",
-      "board_id": 35,
+      "board_id": 38,
       "filter_id": 10034,
       "component": "CR-confirms",
-      "jql": "project = SCRUM AND component = \"CR-confirms\" ORDER BY created DESC",
-      "board_url": "https://shrikantpatil.atlassian.net/jira/software/projects/SCRUM/boards/35",
+      "jql": "project = CRFLT AND component = \"CR-confirms\" ORDER BY created DESC",
+      "board_url": "https://shrikantpatil.atlassian.net/jira/software/projects/CRFLT/boards/38",
       "description": "All issues owned by the Confirms (Trade Confirmations) team"
     },
     "letters": {
       "name": "Letters Board",
-      "board_id": 36,
+      "board_id": 39,
       "filter_id": 10035,
       "component": "CR-letters",
-      "jql": "project = SCRUM AND component = \"CR-letters\" ORDER BY created DESC",
-      "board_url": "https://shrikantpatil.atlassian.net/jira/software/projects/SCRUM/boards/36",
+      "jql": "project = CRFLT AND component = \"CR-letters\" ORDER BY created DESC",
+      "board_url": "https://shrikantpatil.atlassian.net/jira/software/projects/CRFLT/boards/39",
       "description": "All issues owned by the Letters (Client Correspondence) team"
     }
   },
 
   "dashboard_filters": {
     "overall_work_view": {
-      "name": "SCRUM — All Work",
-      "jql": "project = SCRUM ORDER BY created DESC",
+      "name": "CRFLT — All Work",
+      "jql": "project = CRFLT ORDER BY created DESC",
       "widget_type": "Issue Statistics",
       "description": "Full project backlog across all three teams"
     },
     "bugs_overview": {
-      "name": "SCRUM — Bugs Overview",
-      "jql": "project = SCRUM AND issuetype = Bug ORDER BY priority DESC",
+      "name": "CRFLT — Bugs Overview",
+      "jql": "project = CRFLT AND issuetype = Bug ORDER BY priority DESC",
       "widget_type": "Issue Statistics",
       "description": "All open bugs sorted by priority"
     },
     "high_priority_issues": {
-      "name": "SCRUM — High Priority Issues",
-      "jql": "project = SCRUM AND priority in (High, Highest) ORDER BY priority DESC, updated DESC",
+      "name": "CRFLT — High Priority Issues",
+      "jql": "project = CRFLT AND priority in (High, Highest) ORDER BY priority DESC, updated DESC",
       "widget_type": "Issue Statistics",
       "description": "Issues flagged as High or Highest priority across all teams"
     },
     "statements_distribution": {
       "name": "CR-statements — Issue Distribution",
-      "jql": "project = SCRUM AND component = \"CR-statements\" ORDER BY issuetype ASC",
+      "jql": "project = CRFLT AND component = \"CR-statements\" ORDER BY issuetype ASC",
       "widget_type": "Two Dimensional Filter Statistics",
       "description": "Statements team issues grouped by type and status"
     },
     "confirms_distribution": {
       "name": "CR-confirms — Issue Distribution",
-      "jql": "project = SCRUM AND component = \"CR-confirms\" ORDER BY issuetype ASC",
+      "jql": "project = CRFLT AND component = \"CR-confirms\" ORDER BY issuetype ASC",
       "widget_type": "Two Dimensional Filter Statistics",
       "description": "Confirms team issues grouped by type and status"
     },
     "letters_distribution": {
       "name": "CR-letters — Issue Distribution",
-      "jql": "project = SCRUM AND component = \"CR-letters\" ORDER BY issuetype ASC",
+      "jql": "project = CRFLT AND component = \"CR-letters\" ORDER BY issuetype ASC",
       "widget_type": "Two Dimensional Filter Statistics",
       "description": "Letters team issues grouped by type and status"
     },
     "active_sprint": {
-      "name": "SCRUM — Active Sprint",
-      "jql": "project = SCRUM AND sprint in openSprints() ORDER BY assignee ASC",
+      "name": "CRFLT — Active Sprint",
+      "jql": "project = CRFLT AND sprint in openSprints() ORDER BY assignee ASC",
       "widget_type": "Sprint Health Gadget",
       "description": "All issues in the current active sprint"
     },
     "in_progress": {
-      "name": "SCRUM — In Progress",
-      "jql": "project = SCRUM AND status = \"In Progress\" ORDER BY updated DESC",
+      "name": "CRFLT — In Progress",
+      "jql": "project = CRFLT AND status = \"In Progress\" ORDER BY updated DESC",
       "widget_type": "Issue Statistics",
       "description": "All currently in-progress issues across all teams"
     },
     "open_blockers": {
-      "name": "SCRUM — Open Blockers",
-      "jql": "project = SCRUM AND priority = Highest AND status not in (Done, Closed) ORDER BY updated DESC",
+      "name": "CRFLT — Open Blockers",
+      "jql": "project = CRFLT AND priority = Highest AND status not in (Done, Closed) ORDER BY updated DESC",
       "widget_type": "Issue Statistics",
       "description": "Critical blockers that need immediate attention"
     }
@@ -103,12 +103,12 @@
   "qa_agent_filters": {
     "pending_qa": {
       "name": "Ready for QA Review",
-      "jql": "project = SCRUM AND status = \"In Review\" ORDER BY priority DESC",
+      "jql": "project = CRFLT AND status = \"In Review\" ORDER BY priority DESC",
       "description": "Tickets ready for QA Agent analysis"
     },
     "qa_completed": {
       "name": "QA Agent Processed",
-      "jql": "project = SCRUM AND labels = \"qa-agent-reviewed\" ORDER BY updated DESC",
+      "jql": "project = CRFLT AND labels = \"qa-agent-reviewed\" ORDER BY updated DESC",
       "description": "Tickets that have been processed by the QA Agent"
     }
   }

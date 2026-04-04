@@ -1,5 +1,5 @@
 # Mobile QA — Cross-Team Configuration
-## Scope: Statements · Confirms · Letters (SCRUM)
+## Scope: Statements · Confirms · Letters (CRFLT)
 
 > This file defines additional QA instructions that apply when running the
 > **Statements**, **Confirms**, or **Letters** test suites on **mobile devices**.
@@ -16,7 +16,7 @@ interactions, and API behaviour under mobile network conditions.
 
 | Field | Value |
 |-------|-------|
-| **Jira Project** | `SCRUM` (Client Reporting) |
+| **Jira Project** | `CRFLT` (Client Reporting) |
 | **Teams in scope** | Statements, Confirms, Letters |
 | **Automation Repo** | https://github.com/shrikantkingdom/playwright_project |
 | **Test marker** | `@pytest.mark.mobile` |

@@ -30,7 +30,7 @@ _MOCK_TICKETS: list[dict] = [
     {
         "id": "CRFLT-101", "type": "Story", "summary": "Generate monthly PDF statement for taxable accounts",
         "status": "In Progress", "priority": "High", "assignee": "dev.smith@wealth.com",
-        "reporter": "qa.jones@wealth.com", "component": "Statements", "sprint": "CRFLT Sprint 14",
+        "reporter": "qa.jones@wealth.com", "component": "Statements", "sprint": "CRFLT Sprint 1",
         "story_points": 8, "labels": ["statements", "pdf", "batch"],
         "description": "As a client, I want to receive a monthly PDF statement for my taxable accounts.",
         "acceptance_criteria": "1. PDF generated for all taxable accounts by 3rd business day.\n2. Zero-transaction accounts show 'no activity' page.\n3. All monetary values rounded to 2dp.\n4. Statement date range is inclusive of start and end dates.",
@@ -39,7 +39,7 @@ _MOCK_TICKETS: list[dict] = [
     {
         "id": "CRFLT-102", "type": "Bug", "summary": "PDF statement missing page break on multi-page accounts",
         "status": "Open", "priority": "Medium", "assignee": "dev.smith@wealth.com",
-        "reporter": "qa.jones@wealth.com", "component": "Statements", "sprint": "CRFLT Sprint 14",
+        "reporter": "qa.jones@wealth.com", "component": "Statements", "sprint": "CRFLT Sprint 1",
         "story_points": 3, "labels": ["statements", "pdf", "regression"],
         "description": "Multi-holding accounts rendering incorrectly — last page cut off.",
         "acceptance_criteria": "All statements render correctly regardless of holding count.",
@@ -66,7 +66,7 @@ _MOCK_TICKETS: list[dict] = [
     {
         "id": "CRFLT-201", "type": "Story", "summary": "Generate T+1 SWIFT MT515 trade confirmation",
         "status": "In Review", "priority": "Critical", "assignee": "dev.Kumar@wealth.com",
-        "reporter": "qa.roberts@wealth.com", "component": "Confirms", "sprint": "CRFLT Sprint 14",
+        "reporter": "qa.roberts@wealth.com", "component": "Confirms", "sprint": "CRFLT Sprint 1",
         "story_points": 13, "labels": ["confirms", "swift", "regulatory"],
         "description": "Trade confirmations must be generated and dispatched within T+1 business day as per FINRA Rule 10b-10.",
         "acceptance_criteria": "1. MT515 message generated for all equity trades within T+1.\n2. Price tolerance within ±0.0001 of trade price.\n3. BIC validation on all counterparty identifiers.\n4. Duplicate prevention — reprocessed trades do not generate second confirm.",
@@ -75,7 +75,7 @@ _MOCK_TICKETS: list[dict] = [
     {
         "id": "CRFLT-202", "type": "Bug", "summary": "SWIFT MT518 confirmation missing FX conversion rate",
         "status": "Open", "priority": "High", "assignee": "dev.Kumar@wealth.com",
-        "reporter": "qa.roberts@wealth.com", "component": "Confirms", "sprint": "CRFLT Sprint 14",
+        "reporter": "qa.roberts@wealth.com", "component": "Confirms", "sprint": "CRFLT Sprint 1",
         "story_points": 5, "labels": ["confirms", "swift", "fx"],
         "description": "FX trade confirmations not including the applied conversion rate in MT518 tag 36.",
         "acceptance_criteria": "MT518 tag 36 must include FX rate applied at time of trade execution.",
@@ -94,7 +94,7 @@ _MOCK_TICKETS: list[dict] = [
     {
         "id": "CRFLT-301", "type": "Story", "summary": "GDPR suppression enforcement before letter dispatch",
         "status": "In Progress", "priority": "Critical", "assignee": "dev.anderson@wealth.com",
-        "reporter": "compliance@wealth.com", "component": "Letters", "sprint": "CRFLT Sprint 14",
+        "reporter": "compliance@wealth.com", "component": "Letters", "sprint": "CRFLT Sprint 1",
         "story_points": 8, "labels": ["correspondence", "gdpr", "suppression", "compliance"],
         "description": "Before any letter is dispatched, the system must check the GDPR suppression list. Suppressed clients must not receive any marketing or regulatory non-essential communications.",
         "acceptance_criteria": "1. GDPR suppression check is performed before every dispatch — no exceptions.\n2. Suppressed client → letter is not dispatched and incident is logged.\n3. Opt-out confirmation letters are always dispatched regardless of suppression status.\n4. Suppression list is refreshed from source of truth every 15 minutes.",
@@ -140,7 +140,7 @@ _MOCK_TICKETS: list[dict] = [
     {
         "id": "CRFLT-502", "type": "Story", "summary": "[API] Statement generation REST endpoint v2 with async polling",
         "status": "In Progress", "priority": "High", "assignee": "dev.patel@wealth.com",
-        "reporter": "qa.jones@wealth.com", "component": "Statements", "sprint": "CRFLT Sprint 14",
+        "reporter": "qa.jones@wealth.com", "component": "Statements", "sprint": "CRFLT Sprint 1",
         "story_points": 8, "labels": ["statements", "api", "async"],
         "description": "New v2 API for statement generation. POST /statements/generate returns a job_id immediately; client polls GET /statements/jobs/{job_id} for status. Replaces synchronous v1 endpoint.",
         "acceptance_criteria": "1. POST /v2/statements/generate returns 202 Accepted with job_id.\n2. GET /v2/statements/jobs/{job_id} returns status: queued|processing|completed|failed.\n3. Completed job includes download_url valid for 24 hours.\n4. Failed job includes error_code and human-readable message.\n5. v1 endpoint remains functional until 2026-Q3 deprecation.",

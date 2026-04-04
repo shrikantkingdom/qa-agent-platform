@@ -528,12 +528,12 @@ async def release_metrics(fix_version: str):
 # ════════════════════════════════════════════════════════════════════════════════
 
 _CRFLT_BOARDS = [
-    {"id": 1, "name": "Statements Board", "team_id": "statements", "team_name": "Statements",
-     "component": "Statements", "sprint": "CRFLT Sprint 14", "jira_url": "https://shrikantpatil.atlassian.net/jira/software/projects/CRFLT/boards/1"},
-    {"id": 2, "name": "Confirms Board", "team_id": "confirms", "team_name": "Confirms",
-     "component": "Confirms", "sprint": "CRFLT Sprint 14", "jira_url": "https://shrikantpatil.atlassian.net/jira/software/projects/CRFLT/boards/2"},
-    {"id": 3, "name": "Letters Board", "team_id": "letters", "team_name": "Client Correspondence",
-     "component": "Letters", "sprint": "CRFLT Sprint 14", "jira_url": "https://shrikantpatil.atlassian.net/jira/software/projects/CRFLT/boards/3"},
+    {"id": 37, "name": "Statements", "team_id": "statements", "team_name": "Statements",
+     "component": "CR-statements", "sprint": "CRFLT Sprint 1", "jira_url": "https://shrikantpatil.atlassian.net/jira/software/c/projects/CRFLT/boards/37"},
+    {"id": 38, "name": "Confirms", "team_id": "confirms", "team_name": "Confirms",
+     "component": "CR-confirms", "sprint": "CRFLT Sprint 1", "jira_url": "https://shrikantpatil.atlassian.net/jira/software/c/projects/CRFLT/boards/38"},
+    {"id": 39, "name": "Letters", "team_id": "letters", "team_name": "Client Correspondence",
+     "component": "CR-letters", "sprint": "CRFLT Sprint 1", "jira_url": "https://shrikantpatil.atlassian.net/jira/software/c/projects/CRFLT/boards/39"},
 ]
 
 

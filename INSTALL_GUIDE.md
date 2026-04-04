@@ -355,7 +355,7 @@ USE_MOCK_JIRA=false
 JIRA_BASE_URL=https://your-org.atlassian.net/
 JIRA_API_TOKEN=ATATTxxx...your_token_here
 JIRA_EMAIL=your_email@company.com
-JIRA_PROJECT_KEY=PROJ        # The prefix before ticket numbers, e.g. SCRUM, PROJ, DEV
+JIRA_PROJECT_KEY=PROJ        # The prefix before ticket numbers, e.g. CRFLT, PROJ, DEV
 ```
 
 ### Test the Jira connection:
@@ -428,7 +428,7 @@ Open **http://localhost:8000** in your browser.
 
 ### Web UI
 
-1. Enter a Jira ticket key (e.g. `SCRUM-42`) in the text field
+1. Enter a Jira ticket key (e.g. `CRFLT-1`) in the text field
 2. Check **Generate BDD scenarios** if you want Gherkin feature files
 3. Click **Run QA Analysis**
 4. Watch the live progress log
@@ -444,7 +444,7 @@ Open **http://localhost:8000** in your browser.
 # Run QA workflow
 curl -X POST http://localhost:8000/api/v1/run-qa \
   -H "Content-Type: application/json" \
-  -d '{"jira_id": "SCRUM-42", "include_bdd": true}'
+  -d '{"jira_id": "CRFLT-1", "include_bdd": true}'
 
 # Health check
 curl http://localhost:8000/api/v1/health
@@ -524,7 +524,7 @@ kill -9 <PID>   # if something is using it
 ```
 
 ### "Jira ticket not found"
-- Check `JIRA_PROJECT_KEY` matches the prefix in your ticket (e.g. `SCRUM` for `SCRUM-42`)
+- Check `JIRA_PROJECT_KEY` matches the prefix in your ticket (e.g. `CRFLT` for `CRFLT-1`)
 - Check `JIRA_BASE_URL` ends with `/` (e.g. `https://your-org.atlassian.net/`)
 - Verify your API token is valid: run the Jira test script in Section 5
 
@@ -583,7 +583,7 @@ The `settings.py` file has `jira_mcp_url` and `github_mcp_url` fields that were 
 │ URL         │ http://localhost:8000                         │
 │ Health      │ GET /api/v1/health                           │
 │ Providers   │ GET /api/v1/providers                        │
-│ Run QA      │ POST /api/v1/run-qa  {"jira_id":"SCRUM-1"}  │
+│ Run QA      │ POST /api/v1/run-qa  {"jira_id":"CRFLT-1"}  │
 ├─────────────────────────────────────────────────────────────┤
 │ Switch model│  Edit 3 lines in .env, restart               │
 │ Team setup  │  ./start.sh --team <name> --port <N>         │

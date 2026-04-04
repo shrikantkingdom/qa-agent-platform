@@ -16,7 +16,7 @@ for unmatched trades. Regulatory reporting to EMIR and MiFID II is also within s
 
 | Resource | URL |
 |----------|-----|
-| **Jira Board** | https://shrikantpatil.atlassian.net/jira/software/projects/SCRUM/boards/35 |
+| **Jira Board** | https://shrikantpatil.atlassian.net/jira/software/c/projects/CRFLT/boards/38 |
 | **Confluence** | https://shrikantpatil.atlassian.net/wiki/spaces/CONF |
 | **Backend Services Repo** | https://github.com/shrikantkingdom/confirms |
 | **Database / Stored Procedures Repo** | https://github.com/shrikantkingdom/confirms-db |
@@ -27,10 +27,10 @@ for unmatched trades. Regulatory reporting to EMIR and MiFID II is also within s
 
 ## Jira Configuration
 
-- **Project Key**: `SCRUM` (Client Reporting)
+- **Project Key**: `CRFLT` (Client Reporting)
 - **Component**: `CR-confirms`
-- **Board URL**: https://shrikantpatil.atlassian.net/jira/software/projects/SCRUM/boards/35
-- **Board Filter JQL**: `project = SCRUM AND component = "CR-confirms" ORDER BY created DESC`
+- **Board URL**: https://shrikantpatil.atlassian.net/jira/software/c/projects/CRFLT/boards/38
+- **Board Filter JQL**: `project = CRFLT AND component = "CR-confirms" ORDER BY created DESC`
 
 ### Custom Fields
 

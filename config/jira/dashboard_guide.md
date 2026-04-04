@@ -2,14 +2,14 @@
 
 ## Overview
 
-This guide explains how to create the shared **SCRUM QA Dashboard** in Jira Cloud.
+This guide explains how to create the shared **CRFLT QA Dashboard** in Jira Cloud.
 The dashboard is visible to all three teams and provides a unified view of project health.
 
 ---
 
 ## Prerequisites
 
-- You must have **Jira Administrator** or **Project Administrator** access for SCRUM
+- You must have **Jira Administrator** or **Project Administrator** access for CRFLT
 - All three components (`CR-statements`, `CR-confirms`, `CR-letters`) must already be created
   (see `jira_config.md` → Component Setup)
 
@@ -24,15 +24,15 @@ Each dashboard widget needs a saved filter. Create these first so they are reusa
 
 | Filter Name | JQL |
 |-------------|-----|
-| SCRUM — All Work | `project = SCRUM ORDER BY created DESC` |
-| SCRUM — Bugs | `project = SCRUM AND issuetype = Bug ORDER BY priority DESC` |
-| SCRUM — High Priority | `project = SCRUM AND priority in (High, Highest) ORDER BY priority DESC, updated DESC` |
-| SCRUM — Active Sprint | `project = SCRUM AND sprint in openSprints() ORDER BY assignee ASC` |
-| SCRUM — In Progress | `project = SCRUM AND status = "In Progress" ORDER BY updated DESC` |
-| CR-statements — Issues | `project = SCRUM AND component = "CR-statements" ORDER BY issuetype ASC` |
-| CR-confirms — Issues | `project = SCRUM AND component = "CR-confirms" ORDER BY issuetype ASC` |
-| CR-letters — Issues | `project = SCRUM AND component = "CR-letters" ORDER BY issuetype ASC` |
-| SCRUM — Open Blockers | `project = SCRUM AND priority = Highest AND status not in (Done, Closed)` |
+| CRFLT — All Work | `project = CRFLT ORDER BY created DESC` |
+| CRFLT — Bugs | `project = CRFLT AND issuetype = Bug ORDER BY priority DESC` |
+| CRFLT — High Priority | `project = CRFLT AND priority in (High, Highest) ORDER BY priority DESC, updated DESC` |
+| CRFLT — Active Sprint | `project = CRFLT AND sprint in openSprints() ORDER BY assignee ASC` |
+| CRFLT — In Progress | `project = CRFLT AND status = "In Progress" ORDER BY updated DESC` |
+| CR-statements — Issues | `project = CRFLT AND component = "CR-statements" ORDER BY issuetype ASC` |
+| CR-confirms — Issues | `project = CRFLT AND component = "CR-confirms" ORDER BY issuetype ASC` |
+| CR-letters — Issues | `project = CRFLT AND component = "CR-letters" ORDER BY issuetype ASC` |
+| CRFLT — Open Blockers | `project = CRFLT AND priority = Highest AND status not in (Done, Closed)` |
 
 3. For each filter, click **Save as** and set **View access** to **All logged-in users** so all team members can see the dashboard.
 
@@ -43,7 +43,7 @@ Each dashboard widget needs a saved filter. Create these first so they are reusa
 1. Click the **Dashboards** menu in the Jira top navigation
 2. Select **Create dashboard**
 3. Set:
-   - **Name**: `SCRUM QA Overview`
+   - **Name**: `CRFLT QA Overview`
    - **Description**: `Unified QA reporting dashboard for Client Reporting — Statements, Confirms, and Letters teams`
    - **Shared with**: `All logged-in users`
 4. Click **Create**
@@ -59,13 +59,13 @@ Organise them in a **two-column layout** (click **Edit layout** → select two-c
 
 #### Widget A: All Open Work
 - **Gadget**: Issues Statistics
-- **Filter**: `SCRUM — All Work`
+- **Filter**: `CRFLT — All Work`
 - **Statistic**: Issue Type
 - **Title**: `All Open Work`
 
 #### Widget B: Active Sprint
 - **Gadget**: Sprint Health Gadget *(or "Sprint Burndown")* 
-- **Filter**: `SCRUM — Active Sprint`
+- **Filter**: `CRFLT — Active Sprint`
 - **Title**: `Active Sprint`
 
 ---
@@ -74,13 +74,13 @@ Organise them in a **two-column layout** (click **Edit layout** → select two-c
 
 #### Widget C: Bugs Overview
 - **Gadget**: Issue Statistics
-- **Filter**: `SCRUM — Bugs`
+- **Filter**: `CRFLT — Bugs`
 - **Statistic**: Priority
 - **Title**: `Bugs by Priority`
 
 #### Widget D: High Priority Issues
 - **Gadget**: Issue Statistics
-- **Filter**: `SCRUM — High Priority`
+- **Filter**: `CRFLT — High Priority`
 - **Statistic**: Assignee
 - **Title**: `High Priority Issues`
 
@@ -115,7 +115,7 @@ Organise them in a **two-column layout** (click **Edit layout** → select two-c
 
 #### Widget H: Open Blockers
 - **Gadget**: Issue Statistics
-- **Filter**: `SCRUM — Open Blockers`
+- **Filter**: `CRFLT — Open Blockers`
 - **Statistic**: Assignee
 - **Title**: `Open Blockers`
 
@@ -125,7 +125,7 @@ Organise them in a **two-column layout** (click **Edit layout** → select two-c
 
 #### Widget I: In Progress Issues (full-width)
 - **Gadget**: Assigned to Me *(or "Filter Results")* 
-- **Filter**: `SCRUM — In Progress`
+- **Filter**: `CRFLT — In Progress`
 - **Number of results**: 20
 - **Title**: `Currently In Progress`
 
@@ -142,7 +142,7 @@ Organise them in a **two-column layout** (click **Edit layout** → select two-c
 
 ## Step 5 — Set as Favourite (Optional)
 
-1. From the Dashboards menu, find `SCRUM QA Overview`
+1. From the Dashboards menu, find `CRFLT QA Overview`
 2. Click the ☆ star icon to mark it as a favourite
 3. Ask all team members to do the same — it will then appear in their default dashboard list
 
@@ -166,5 +166,5 @@ Organise them in a **two-column layout** (click **Edit layout** → select two-c
 |-------|----------|
 | Widget shows "No data" | Verify the saved filter returns results when run manually |
 | Team board shows wrong team's issues | Check the board's Filter Query in Board Settings → General |
-| `CR-statements` component not available | Create it in SCRUM Project Settings → Components |
+| `CR-statements` component not available | Create it in CRFLT Project Settings → Components |
 | Permission denied on dashboard | Set dashboard sharing to "All logged-in users" |

@@ -1,4 +1,4 @@
-# Jira Configuration — SCRUM (Client Reporting)
+# Jira Configuration — CRFLT (Client Reporting)
 
 ## Project Structure
 
@@ -6,9 +6,9 @@ All three Client Reporting teams (**Statements**, **Confirms**, **Letters**) sha
 
 | Field | Value |
 |-------|-------|
-| **Project Key** | `SCRUM` |
+| **Project Key** | `CRFLT` |
 | **Project Name** | Client Reporting |
-| **Project URL** | https://shrikantpatil.atlassian.net/jira/software/projects/SCRUM |
+| **Project URL** | https://shrikantpatil.atlassian.net/jira/software/c/projects/CRFLT |
 | **Project Type** | Scrum / Kanban (team-level boards) |
 | **Single project?** | Yes — do NOT create separate projects per team |
 
@@ -20,9 +20,9 @@ Teams are separated inside the shared project using **Jira Components**. Every i
 
 | Team | Component Name | Board Filter |
 |------|---------------|--------------|
-| Statements | `CR-statements` | `project = SCRUM AND component = "CR-statements"` |
-| Confirms | `CR-confirms` | `project = SCRUM AND component = "CR-confirms"` |
-| Letters | `CR-letters` | `project = SCRUM AND component = "CR-letters"` |
+| Statements | `CR-statements` | `project = CRFLT AND component = "CR-statements"` |
+| Confirms | `CR-confirms` | `project = CRFLT AND component = "CR-confirms"` |
+| Letters | `CR-letters` | `project = CRFLT AND component = "CR-letters"` |
 
 ### Why Components?
 
@@ -35,7 +35,7 @@ Teams are separated inside the shared project using **Jira Components**. Every i
 
 ## Component Setup in Jira UI
 
-1. Open **SCRUM** project → **Project settings** (bottom-left gear icon)
+1. Open **CRFLT** project → **Project settings** (bottom-left gear icon)
 2. Click **Components** in the left sidebar
 3. Add each component:
    - **Name**: `CR-statements` | **Lead**: Statements QA Lead | **Default Assignee**: Project default
@@ -45,30 +45,29 @@ Teams are separated inside the shared project using **Jira Components**. Every i
 
 ---
 
-## Board Setup in Jira UI
+## Kanban Boards (Live)
 
-Create three Kanban boards — one per team — using board-level saved filters.
+Three Kanban boards are provisioned via the Jira Agile API and scoped to their respective
+team component. Each board uses a saved JQL filter as its data source.
 
-### Step-by-Step: Create a Kanban Board
+| Team | Board Name | Board ID | Board URL |
+|------|-----------|----------|-----------|
+| Statements | Statements | 37 | https://shrikantpatil.atlassian.net/jira/software/c/projects/CRFLT/boards/37 |
+| Confirms | Confirms | 38 | https://shrikantpatil.atlassian.net/jira/software/c/projects/CRFLT/boards/38 |
+| Letters | Letters | 39 | https://shrikantpatil.atlassian.net/jira/software/c/projects/CRFLT/boards/39 |
 
-1. From the SCRUM project, click **Board** → **Create board**
-2. Choose **Kanban board** → **Board from an existing project**
-3. Name the board (e.g. `Statements Board`) and select project `SCRUM`
-4. After creation, open **Board settings** → **General** → **Filter Query**
-5. Set the JQL filter:
+**Board filter JQLs:**
 
 ```sql
--- Statements Board
-project = SCRUM AND component = "CR-statements" ORDER BY created DESC
+-- Statements Board (filter 10033)
+project = CRFLT AND component = "CR-statements" ORDER BY created DESC
 
--- Confirms Board
-project = SCRUM AND component = "CR-confirms" ORDER BY created DESC
+-- Confirms Board (filter 10034)
+project = CRFLT AND component = "CR-confirms" ORDER BY created DESC
 
--- Letters Board
-project = SCRUM AND component = "CR-letters" ORDER BY created DESC
+-- Letters Board (filter 10035)
+project = CRFLT AND component = "CR-letters" ORDER BY created DESC
 ```
-
-6. Click **Save** — only that team's issues will now appear on the board.
 
 > All JQL filters are also stored in `config/jira/jira_filters.json`.
 
@@ -103,7 +102,7 @@ issue_key = await service.create_issue(
     priority="High",
     labels=["statements", "api"],
 )
-# Returns "SCRUM-42" (or None on failure)
+# Returns "CRFLT-42" (or None on failure)
 ```
 
 ### Validation
@@ -126,18 +125,18 @@ await service.create_issue(team_name="payments", ...)
 
 ## Dashboard Overview
 
-A unified **SCRUM QA Dashboard** covers all three teams. The dashboard uses saved Jira filters as widget data sources.
+A unified **CRFLT QA Dashboard** covers all three teams. The dashboard uses saved Jira filters as widget data sources.
 
 | Widget | JQL | Widget Type |
 |--------|-----|------------|
-| All Work | `project = SCRUM ORDER BY created DESC` | Issue Statistics |
-| Bugs Overview | `project = SCRUM AND issuetype = Bug ORDER BY priority DESC` | Issue Statistics |
-| High Priority | `project = SCRUM AND priority in (High, Highest)` | Issue Statistics |
-| Active Sprint | `project = SCRUM AND sprint in openSprints()` | Sprint Health Gadget |
-| Statements Issues | `project = SCRUM AND component = "CR-statements"` | Two Dimensional Filter Stats |
-| Confirms Issues | `project = SCRUM AND component = "CR-confirms"` | Two Dimensional Filter Stats |
-| Letters Issues | `project = SCRUM AND component = "CR-letters"` | Two Dimensional Filter Stats |
-| In Progress | `project = SCRUM AND status = "In Progress"` | Issue Statistics |
+| All Work | `project = CRFLT ORDER BY created DESC` | Issue Statistics |
+| Bugs Overview | `project = CRFLT AND issuetype = Bug ORDER BY priority DESC` | Issue Statistics |
+| High Priority | `project = CRFLT AND priority in (High, Highest)` | Issue Statistics |
+| Active Sprint | `project = CRFLT AND sprint in openSprints()` | Sprint Health Gadget |
+| Statements Issues | `project = CRFLT AND component = "CR-statements"` | Two Dimensional Filter Stats |
+| Confirms Issues | `project = CRFLT AND component = "CR-confirms"` | Two Dimensional Filter Stats |
+| Letters Issues | `project = CRFLT AND component = "CR-letters"` | Two Dimensional Filter Stats |
+| In Progress | `project = CRFLT AND status = "In Progress"` | Issue Statistics |
 
 See `dashboard_guide.md` for step-by-step instructions to build this dashboard in the Jira UI.
 
