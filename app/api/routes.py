@@ -655,10 +655,26 @@ async def _run_qa_background(
     custom_prompt: Optional[str],
 ) -> None:
     """Background coroutine — runs the full QA workflow and logs the result."""
+    import time as _time
+
+    run_id = str(uuid.uuid4())
     logger.info(
         f"[webhook] background QA started  jira_id={jira_id}  team={team_id}  "
-        f"post_to_jira={post_to_jira}  triggered_by={triggered_by}"
+        f"post_to_jira={post_to_jira}  triggered_by={triggered_by}  run_id={run_id}"
     )
+
+    history_service.create_run(
+        run_id=run_id,
+        task_type="qa_analysis",
+        jira_id=jira_id,
+        release=None,
+        team_id=team_id,
+        team_name=team_id,
+        triggered_by=triggered_by,
+        steps_selected=None,
+    )
+
+    t0 = _time.time()
     try:
         qa_req = QARequest(
             jira_id=jira_id,
@@ -669,14 +685,44 @@ async def _run_qa_background(
             steps=WorkflowSteps(),  # all steps enabled by default
         )
         result = await workflow_service.run_full_workflow(qa_req)
-        score = result.validation.quality_score if result.validation else "n/a"
+        elapsed = round(_time.time() - t0, 2)
+        score = result.validation.quality_score if result.validation else None
         grade = result.validation.grade if result.validation else "n/a"
+        alignment = result.alignment.score if result.alignment else None
+
+        history_service.complete_run(
+            run_id=run_id,
+            duration_secs=elapsed,
+            quality_score=score,
+            alignment_score=alignment,
+            test_case_count=len(result.test_cases),
+            bdd_count=len(result.bdd_scenarios),
+            outputs={
+                "report": result.report_path,
+                "testcases_csv": result.testcases_csv_path,
+                "testcases_json": result.testcases_json_path,
+                "bdd_feature": result.bdd_feature_path,
+            },
+            error_message=result.error,
+        )
+
         logger.info(
             f"[webhook] background QA finished  jira_id={jira_id}  "
-            f"status={result.status}  score={score}  grade={grade}"
+            f"status={result.status}  score={score}  grade={grade}  run_id={run_id}"
         )
     except Exception as exc:  # noqa: BLE001
-        logger.error(f"[webhook] background QA failed  jira_id={jira_id}  error={exc}")
+        elapsed = round(_time.time() - t0, 2)
+        history_service.complete_run(
+            run_id=run_id,
+            duration_secs=elapsed,
+            quality_score=None,
+            alignment_score=None,
+            test_case_count=0,
+            bdd_count=0,
+            outputs={},
+            error_message=str(exc),
+        )
+        logger.error(f"[webhook] background QA failed  jira_id={jira_id}  error={exc}  run_id={run_id}")
 
 
 @router.post("/webhooks/jira", status_code=202)
