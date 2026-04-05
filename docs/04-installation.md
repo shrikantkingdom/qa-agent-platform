@@ -1,54 +1,27 @@
-# QA Agent Platform — Complete Installation & Setup Guide
+# 04 — Installation & Setup Guide
 
-> **Platform**: macOS / Linux / Windows (WSL recommended for Windows)  
-> **Last updated**: April 2026
+> **Platform**: macOS / Linux / Windows (WSL recommended)
+>
+> See [01-quick-start.md](01-quick-start.md) for the 5-minute version.
+> See [08-troubleshooting.md](08-troubleshooting.md) for FAQ & common errors.
 
 ---
 
 ## Table of Contents
 
-1. [What This Platform Does](#1-what-this-platform-does)
-2. [Prerequisites](#2-prerequisites)
-3. [Installation](#3-installation)
-4. [Configure Your AI Provider](#4-configure-your-ai-provider)
-   - [GitHub Models (Free — Recommended for first run)](#41-github-models-free--recommended)
-   - [OpenAI](#42-openai)
-   - [Anthropic (Claude)](#43-anthropic-claude)
-   - [DeepSeek](#44-deepseek)
-   - [Groq (Fast, generous free tier)](#45-groq)
-   - [Mistral](#46-mistral)
-   - [Ollama (Local, no cloud account)](#47-ollama-local)
-   - [Google Gemini](#48-google-gemini)
-   - [Azure OpenAI](#49-azure-openai)
-5. [Configure Jira](#5-configure-jira)
-6. [Configure GitHub](#6-configure-github)
-7. [Start the Platform](#7-start-the-platform)
-8. [Use the Platform](#8-use-the-platform)
-9. [Multi-Team Setup](#9-multi-team-setup)
-10. [Switching Providers On-the-Fly](#10-switching-providers-on-the-fly)
-11. [FAQ & Troubleshooting](#11-faq--troubleshooting)
-12. [MCP vs REST API — Clarification](#12-mcp-vs-rest-api--clarification)
+1. [Prerequisites](#1-prerequisites)
+2. [Installation](#2-installation)
+3. [Configure Your AI Provider](#3-configure-your-ai-provider)
+4. [Configure Jira](#4-configure-jira)
+5. [Configure GitHub](#5-configure-github)
+6. [Start the Platform](#6-start-the-platform)
+7. [Use the Platform](#7-use-the-platform)
+8. [Multi-Team Setup](#8-multi-team-setup)
+9. [Switching Providers On-the-Fly](#9-switching-providers-on-the-fly)
 
 ---
 
-## 1. What This Platform Does
-
-The QA Agent Platform is an AI-powered quality assurance automation tool that:
-
-- Reads a Jira story / bug ticket
-- Uses an LLM (GPT-4, Claude, DeepSeek, Llama, etc.) to:
-  - **Validate** the ticket quality (clarity, completeness, story coverage score 0–100)
-  - **Generate** comprehensive test cases (CSV + JSON, ready for import into TestRail/Xray)
-  - **Generate** BDD Gherkin feature files and Python `pytest-bdd` step definitions
-  - Check **code-requirement alignment** against linked GitHub commits
-- Produces a rich **HTML report** viewable in any browser
-- Optionally posts a validation comment back to the Jira ticket
-
-Everything runs locally on your machine. No data is sent anywhere except to the AI provider API and your own Jira/GitHub instances.
-
----
-
-## 2. Prerequisites
+## 1. Prerequisites
 
 | Tool | Required | Version | Install |
 |------|----------|---------|---------|
@@ -73,7 +46,7 @@ pyenv global 3.11
 
 ---
 
-## 3. Installation
+## 2. Installation
 
 ```bash
 # 1. Clone the repository
@@ -102,7 +75,7 @@ Open your browser at **http://localhost:8000**
 
 ---
 
-## 4. Configure Your AI Provider
+## 3. Configure Your AI Provider
 
 Open `.env` in any text editor. Find the `LLM Provider` block and change just **3 lines**:
 
@@ -116,7 +89,7 @@ The `OPENAI_BASE_URL` is set automatically from `LLM_PROVIDER`. You do **not** n
 
 ---
 
-### 4.1 GitHub Models (Free — Recommended)
+### 3.1 GitHub Models (Free — Recommended)
 
 **Cost**: Free (included with any GitHub account)  
 **Models available**: gpt-4o, gpt-4o-mini, gpt-4.1, Llama 3.3, Phi-4, Mistral, and more  
@@ -147,7 +120,7 @@ OPENAI_MODEL=gpt-4o
 
 ---
 
-### 4.2 OpenAI
+### 3.2 OpenAI
 
 **Cost**: Pay-per-use (~ $0.002–0.015 per QA run)  
 **Get API key:**
@@ -169,7 +142,7 @@ OPENAI_MODEL=gpt-4o
 
 ---
 
-### 4.3 Anthropic (Claude)
+### 3.3 Anthropic (Claude)
 
 **Cost**: Pay-per-use (~$0.003–0.015 per run)  
 **Get API key:**
@@ -192,7 +165,7 @@ OPENAI_MODEL=claude-3-5-sonnet-20241022
 
 ---
 
-### 4.4 DeepSeek
+### 3.4 DeepSeek
 
 **Cost**: Very cheap (~$0.0003 per run)  
 **Get API key:**
@@ -213,7 +186,7 @@ OPENAI_MODEL=deepseek-chat
 
 ---
 
-### 4.5 Groq
+### 3.5 Groq
 
 **Cost**: Free generous tier (14,400 tokens/min free)  
 **Get API key:**
@@ -234,7 +207,7 @@ OPENAI_MODEL=llama-3.3-70b-versatile
 
 ---
 
-### 4.6 Mistral
+### 3.6 Mistral
 
 **Cost**: Pay-per-use, competitive pricing  
 **Get API key:**
@@ -255,7 +228,7 @@ OPENAI_MODEL=mistral-large-latest
 
 ---
 
-### 4.7 Ollama (Local)
+### 3.7 Ollama (Local)
 
 **Cost**: Free — runs entirely on your machine  
 **Requires**: 8GB+ RAM (16GB+ for best results), optionally an NVIDIA/Apple Silicon GPU
@@ -293,7 +266,7 @@ OPENAI_MODEL=llama3.1
 
 ---
 
-### 4.8 Google Gemini
+### 3.8 Google Gemini
 
 **Cost**: Very generous free tier (15 req/min, 1M tokens/day free)  
 **Get API key:**
@@ -314,7 +287,7 @@ OPENAI_MODEL=gemini-2.0-flash
 
 ---
 
-### 4.9 Azure OpenAI
+### 3.9 Azure OpenAI
 
 **Cost**: Pay-per-use (Azure billing)  
 **Requires**: Azure subscription + Azure OpenAI resource deployed
@@ -335,7 +308,7 @@ OPENAI_BASE_URL=https://your-resource.openai.azure.com/openai/
 
 ---
 
-## 5. Configure Jira
+## 4. Configure Jira
 
 ### Get Your Jira API Token
 
@@ -374,7 +347,7 @@ asyncio.run(test())
 
 ---
 
-## 6. Configure GitHub
+## 5. Configure GitHub
 
 ### Get a GitHub Personal Access Token
 
@@ -398,7 +371,7 @@ GITHUB_AUTOMATION_REPO=your-test-repo    # Optional: for BDD step push-back
 
 ---
 
-## 7. Start the Platform
+## 6. Start the Platform
 
 ```bash
 # Standard start
@@ -424,7 +397,7 @@ Open **http://localhost:8000** in your browser.
 
 ---
 
-## 8. Use the Platform
+## 7. Use the Platform
 
 ### Web UI
 
@@ -458,7 +431,7 @@ curl http://localhost:8000/api/v1/config
 
 ---
 
-## 9. Multi-Team Setup
+## 8. Multi-Team Setup
 
 Each team can use a different Jira project, GitHub repo, and AI provider without touching the shared `.env`.
 
@@ -489,7 +462,7 @@ Each team instance is isolated on its own port.
 
 ---
 
-## 10. Switching Providers On-the-Fly
+## 9. Switching Providers On-the-Fly
 
 Change just 3 lines in `.env`, then restart:
 
@@ -514,82 +487,3 @@ LLM_PROVIDER=groq OPENAI_API_KEY=gsk_xxx ./start.sh
 
 ---
 
-## 11. FAQ & Troubleshooting
-
-### "Connection refused" when starting
-```bash
-# Make sure port 8000 is free
-lsof -i :8000
-kill -9 <PID>   # if something is using it
-```
-
-### "Jira ticket not found"
-- Check `JIRA_PROJECT_KEY` matches the prefix in your ticket (e.g. `CRFLT` for `CRFLT-1`)
-- Check `JIRA_BASE_URL` ends with `/` (e.g. `https://your-org.atlassian.net/`)
-- Verify your API token is valid: run the Jira test script in Section 5
-
-### "Authentication failed" on LLM calls
-- Double-check your API key in `.env` — no extra spaces or quotes
-- Check the key hasn't expired (GitHub PATs have expiry dates)
-- Verify you have billing active (OpenAI requires a payment method)
-
-### "JSON parsing failed"
-- This is a rare edge case where the model returns markdown fences
-- The platform handles this automatically with fence stripping
-- If it persists, try adding `LLM_TEMPERATURE=0.0` to `.env`
-
-### Out-of-quota errors (OpenAI)
-- Switch to GitHub Models (free) or Groq (free tier)
-- Or add credits at platform.openai.com/settings/billing
-
-### Slow responses
-- GitHub Models and OpenAI can take 20–40 seconds for complex tickets
-- Groq is typically 3–8 seconds (fastest cloud option)
-- Ollama depends on your hardware; Apple M2/M3 runs llama3.1 well
-
-### Python version errors
-```bash
-python3 --version   # needs 3.11+
-# If lower, install with pyenv (see Section 2)
-```
-
----
-
-## 12. MCP vs REST API — Clarification
-
-**Does this platform use MCP (Model Context Protocol)?**
-
-**No.** This platform communicates with Jira and GitHub using their standard **REST APIs** directly.
-
-- Jira: REST API v3 at `{JIRA_BASE_URL}/rest/api/3/`
-- GitHub: REST API v3 at `https://api.github.com/`
-
-The `settings.py` file has `jira_mcp_url` and `github_mcp_url` fields that were planned for future use. They are currently unused. MCP integration (for use with VS Code Copilot, Claude Desktop, etc.) is planned for a future release.
-
-**Why REST instead of MCP?**
-- REST APIs work in any environment without an MCP host
-- Works in CI/CD pipelines, Docker containers, and standalone scripts
-- No dependency on a running MCP client (e.g., VS Code, Claude Desktop)
-
----
-
-## Quick Reference Card
-
-```
-┌─────────────────────────────────────────────────────────────┐
-│                   QA Agent Platform                         │
-├─────────────────────────────────────────────────────────────┤
-│ Start       │ ./start.sh                                    │
-│ URL         │ http://localhost:8000                         │
-│ Health      │ GET /api/v1/health                           │
-│ Providers   │ GET /api/v1/providers                        │
-│ Run QA      │ POST /api/v1/run-qa  {"jira_id":"CRFLT-1"}  │
-├─────────────────────────────────────────────────────────────┤
-│ Switch model│  Edit 3 lines in .env, restart               │
-│ Team setup  │  ./start.sh --team <name> --port <N>         │
-├─────────────────────────────────────────────────────────────┤
-│ Free APIs   │  GitHub Models, Groq, Gemini, Ollama (local) │
-│ Best model  │  gpt-4o (OpenAI/GitHub) or claude-3-5-sonnet │
-│ Fastest     │  Groq llama-3.3-70b or Ollama phi4 (local)   │
-└─────────────────────────────────────────────────────────────┘
-```

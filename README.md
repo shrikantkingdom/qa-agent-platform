@@ -1,227 +1,90 @@
-# 🤖 QA Agent Platform
+# QA Agent Platform
 
-> **One-click AI-powered QA workflow automation** — validate Jira tickets, analyse code changes, generate test cases, BDD scenarios, and a full HTML QA report in a single API call.
+AI-powered QA workflow automation for Jira-driven development teams. Enter a Jira ticket ID — get a quality score, test cases, BDD scenarios, pytest-bdd step definitions, and a full HTML report.
 
----
+**Two trigger modes:**
+1. **Web UI** — open `http://localhost:8000`, enter a ticket, click Run
+2. **Jira Automation** — webhook fires automatically on status transition, posts results back as a Jira comment
 
-## ✨ Features
-
-| Feature | Detail |
-|---|---|
-| **Jira Ticket Validation** | Quality score (0–100), grade, issue list, strengths |
-| **Code Alignment** | Links GitHub commits to Jira requirements; surfaces gaps |
-| **Test Case Generation** | Happy Path, Negative, Edge Case, Regression scenarios |
-| **BDD Scenarios** | Gherkin Feature files + pytest-bdd step definitions |
-| **HTML QA Report** | Standalone, printable, shareable report |
-| **CSV / JSON Export** | Structured test case artefacts for any test management tool |
-| **Mock Mode** | Works out-of-the-box without real Jira/GitHub credentials |
-| **One-click UI** | Enter a Jira ID → click Run → download everything |
-
----
-
-## 🏗️ Project Structure
-
-```
-qa-agent-platform/
-├── app/
-│   ├── main.py                   # FastAPI app, CORS, lifespan, static UI mount
-│   ├── api/
-│   │   └── routes.py             # POST /run-qa, GET /outputs/…, GET /health
-│   ├── services/
-│   │   ├── workflow_service.py   # ★ Main 9-step orchestrator
-│   │   ├── ai_service.py         # LLM prompt builders + OpenAI calls
-│   │   ├── jira_service.py       # Jira MCP abstraction (mock + real)
-│   │   ├── github_service.py     # GitHub MCP abstraction (mock + real)
-│   │   ├── test_generation_service.py   # Parse + export test cases
-│   │   ├── bdd_service.py        # Gherkin feature files + step defs
-│   │   └── report_service.py     # Jinja2 HTML report renderer
-│   ├── models/
-│   │   └── schemas.py            # All Pydantic v2 models
-│   ├── utils/
-│   │   └── logger.py             # Structured stdout logging
-│   └── config/
-│       └── settings.py           # pydantic-settings env config
-│
-├── ui/
-│   └── index.html                # Single-page UI (no build step)
-│
-├── templates/
-│   └── report_template.html      # Jinja2 HTML report template
-│
-├── outputs/                      # Auto-created on startup
-│   ├── reports/                  # HTML reports
-│   ├── testcases/                # CSV + JSON test cases
-│   └── bdd/                      # .feature + _steps.py files
-│
-├── requirements.txt
-├── .env.example
-└── README.md
-```
-
----
-
-## 🚀 Quick Start
-
-### 1. Clone & enter the project
+## Quick Start
 
 ```bash
-git clone <repo-url>
+git clone https://github.com/shrikantkingdom/qa-agent-platform.git
 cd qa-agent-platform
-```
-
-### 2. Create a virtual environment
-
-```bash
-python3 -m venv .venv
-source .venv/bin/activate          # Windows: .venv\Scripts\activate
-```
-
-### 3. Install dependencies
-
-```bash
+python3 -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
-```
-
-### 4. Configure environment
-
-```bash
-cp .env.example .env
-# Edit .env — at minimum set OPENAI_API_KEY
-# Leave USE_MOCK_JIRA=true and USE_MOCK_GITHUB=true for demo mode
-```
-
-### 5. Run the server
-
-```bash
+cp .env.example .env          # configure LLM + Jira + GitHub keys
 uvicorn app.main:app --reload
 ```
 
-### 6. Open the UI
+Open **http://localhost:8000** — enter `CRFLT-1` and click **Run QA Analysis**.
+
+See [docs/01-quick-start.md](docs/01-quick-start.md) for the full walkthrough.
+
+## How It Works
 
 ```
-http://localhost:8000
+Jira Ticket → 9-step AI pipeline → Quality Score + Test Cases + BDD + HTML Report
 ```
 
-Enter a Jira ID (e.g. `PROJ-123`), click **Run QA Analysis**, and download your artefacts.
+| Step | What happens |
+|------|-------------|
+| 1 | Fetch Jira ticket (title, AC, labels, custom fields) |
+| 2 | Fetch recent GitHub commits |
+| 3 | AI validates ticket quality → score 0–100, grade A–F |
+| 4 | AI checks requirement–code alignment → coverage gaps |
+| 5 | AI generates 8–15 test cases (happy path, negative, edge case) |
+| 6 | Export test cases to CSV |
+| 7 | AI generates BDD Gherkin scenarios |
+| 8 | AI generates pytest-bdd step definitions |
+| 9 | Render HTML report |
 
----
-
-## 🔌 API Reference
-
-### `POST /api/v1/run-qa`
-
-Execute the full QA workflow.
-
-**Request body:**
-```json
-{
-  "jira_id":     "PROJ-123",
-  "release":     "v2.1.0",
-  "include_bdd": true,
-  "post_to_jira": false
-}
-```
-
-**Response:** `QAResponse` containing quality score, validation issues, test cases, BDD scenarios, alignment results, and output file paths.
-
----
-
-### `GET /api/v1/outputs/{type}/{filename}`
-
-Download a generated artefact.
-
-| `type`     | Files                                   |
-|------------|-----------------------------------------|
-| `reports`  | `{JIRA_ID}_report.html`                 |
-| `testcases`| `{JIRA_ID}_testcases.csv / .json`       |
-| `bdd`      | `{JIRA_ID}.feature`, `{JIRA_ID}_steps.py` |
-
----
-
-### `GET /api/v1/health`
-
-Liveness check — returns `{"status": "healthy"}`.
-
----
-
-### Interactive Docs
-
-- Swagger UI: `http://localhost:8000/docs`
-- ReDoc: `http://localhost:8000/redoc`
-
----
-
-## 🧠 Workflow Steps
+## Project Structure
 
 ```
-POST /run-qa
-     │
-     ▼
-[1] Fetch Jira ticket            (jira_service)
-[2] Validate ticket quality      (ai_service → LLM)
-[3] Fetch GitHub commits         (github_service)
-[4] Code-requirement alignment   (ai_service → LLM)
-[5] Generate test cases          (ai_service → LLM)
-[6] Export CSV + JSON            (test_generation_service)
-[7] Generate BDD Gherkin         (ai_service → LLM)
-[8] Generate step definitions    (ai_service → LLM)
-[9] Render HTML report           (report_service → Jinja2)
-     │
-     ▼
-  outputs/reports/*.html
-  outputs/testcases/*.csv + *.json
-  outputs/bdd/*.feature + *_steps.py
+qa-agent-platform/
+├── app/                  # FastAPI backend (routes, services, models, config)
+├── ui/                   # Single-page browser UI (no build step)
+├── config/               # Team context files + Jira project config
+├── templates/            # Jinja2 HTML report template
+├── outputs/              # Generated reports, test cases, BDD files
+├── tests/                # pytest test suite
+├── scripts/              # CLI trigger script
+├── docs/                 # Full documentation (see index below)
+├── Dockerfile            # Container build
+├── docker-compose.yml    # One-command deployment
+├── Makefile              # Dev shortcuts (make run, make test, make dev)
+└── requirements.txt
 ```
 
----
+## Documentation Index
 
-## ⚙️ Configuration Reference
+| Doc | Topic |
+|-----|-------|
+| [01-quick-start.md](docs/01-quick-start.md) | End-to-end setup and first run |
+| [02-architecture.md](docs/02-architecture.md) | System design, 9-step workflow, LLM layer, team context |
+| [03-jira-webhook-setup.md](docs/03-jira-webhook-setup.md) | Jira Automation webhook trigger (with CRFLT examples) |
+| [04-installation.md](docs/04-installation.md) | Prerequisites, 9 AI providers, Jira/GitHub config |
+| [05-team-onboarding.md](docs/05-team-onboarding.md) | Adding a new team in 30 minutes |
+| [06-deployment.md](docs/06-deployment.md) | Docker, production, CI/CD, execution models |
+| [07-api-reference.md](docs/07-api-reference.md) | All endpoints with request/response examples |
+| [08-troubleshooting.md](docs/08-troubleshooting.md) | Common errors and fixes |
+| [09-innovation-story.md](docs/09-innovation-story.md) | Problem statement, design decisions, ROI |
+| [10-interview-qa.md](docs/10-interview-qa.md) | Deep Q&A for interviews and knowledge transfer |
+| [11-rebuild-guide.md](docs/11-rebuild-guide.md) | Step-by-step rebuild reference |
 
-| Variable | Default | Description |
-|---|---|---|
-| `OPENAI_API_KEY` | `""` | OpenAI key. Leave blank for mock responses |
-| `OPENAI_MODEL` | `gpt-4o` | Model name |
-| `USE_MOCK_JIRA` | `true` | Use built-in demo ticket instead of real Jira |
-| `USE_MOCK_GITHUB` | `true` | Use built-in demo commits instead of real GitHub |
-| `JIRA_BASE_URL` | — | `https://your-org.atlassian.net/rest/api/3` |
-| `JIRA_API_TOKEN` | — | Jira API token |
-| `JIRA_EMAIL` | — | Email address associated with the token |
-| `GITHUB_TOKEN` | — | GitHub Personal Access Token |
-| `GITHUB_REPO_OWNER` | — | GitHub org/user name |
-| `GITHUB_REPO_NAME` | — | Repository name |
+## Tech Stack
 
----
+| Layer | Technology |
+|-------|-----------|
+| API | FastAPI + Pydantic v2 |
+| LLM | AsyncOpenAI (9 providers: GitHub Models, OpenAI, Anthropic, Azure, Groq, Ollama, etc.) |
+| Jira | REST API v3 + Automation webhooks |
+| GitHub | REST API (commits, file push, PR creation) |
+| UI | Vanilla HTML/JS (single file, no build step) |
+| Reports | Jinja2 HTML templates |
+| Container | Docker + docker-compose |
 
-## 🔌 Connecting Real Integrations
+## License
 
-### Jira
-1. Set `USE_MOCK_JIRA=false` in `.env`
-2. Fill in `JIRA_BASE_URL`, `JIRA_EMAIL`, `JIRA_API_TOKEN`
-3. Create an API token at: https://id.atlassian.com/manage-profile/security/api-tokens
-
-### GitHub
-1. Set `USE_MOCK_GITHUB=false`
-2. Fill in `GITHUB_TOKEN`, `GITHUB_REPO_OWNER`, `GITHUB_REPO_NAME`
-3. Token needs `repo` + `read:org` scopes
-
----
-
-## 🔮 Extending the Platform
-
-| Enhancement | Where to add |
-|---|---|
-| Slack notification | `workflow_service.py` after step 9 |
-| Jira webhook trigger | New FastAPI route in `routes.py` |
-| Playwright test execution | New service, called from `workflow_service.py` |
-| React UI | Replace `ui/index.html`, keep API unchanged |
-| Custom LLM (Azure OpenAI) | Set `OPENAI_BASE_URL` in `.env` |
-| Additional prompt tuning | `ai_service.py` prompt builder methods |
-
----
-
-## 🛡️ Security Notes
-
-- Never commit `.env` to source control (already in typical `.gitignore`)
-- The download endpoint sanitises filenames to prevent path traversal
-- LLM outputs are JSON-parsed; raw HTML is never injected unsanitised
-- CORS is open (`*`) by default — restrict `allow_origins` for production
+MIT

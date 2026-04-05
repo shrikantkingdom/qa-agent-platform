@@ -28,6 +28,9 @@ outputs/bdd/
 outputs/history.db
 outputs/step_definitions/
 
+# ── Archive (legacy files, not pushed to GitHub) ────────────
+archive/
+
 # ── macOS ────────────────────────────────────────────────────
 .DS_Store
 .AppleDouble

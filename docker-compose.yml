@@ -1,0 +1,11 @@
+services:
+  qa-platform:
+    build: .
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env
+    volumes:
+      - ./outputs:/app/outputs
+      - ./config:/app/config
+    restart: unless-stopped
